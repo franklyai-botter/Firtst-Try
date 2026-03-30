@@ -1,0 +1,1506 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kaiser – Das Königreich</title>
+<!--
+  ╔══════════════════════════════════════════════════════╗
+  ║  KAISER – Das Königreich                            ║
+  ║  Standalone HTML-Version (kein Build nötig)         ║
+  ║  Für Modular-Version: npm install && npm run dev    ║
+  ╚══════════════════════════════════════════════════════╝
+
+  CLAUDE CODE HINWEIS:
+  Diese Datei ist der fertige Prototyp.
+  Alle Logik ist inline – kein Build nötig.
+  Für die modulare Version: src/ Ordner nutzen.
+-->
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=Cinzel:wght@400;700;900&family=IM+Fell+English:ital@0;1&display=swap" rel="stylesheet">
+
+<!-- FULL GAME STYLES: Referenz → docs/VISUAL_SPEC.md -->
+<style>
+  /* CSS VARIABLEN – Referenz: VISUAL_SPEC.md §1 */
+  :root {
+    --parchment:        #f4e4c1;
+    --parchment-dark:   #e8d5a3;
+    --parchment-shadow: #c9a96e;
+    --ink:              #2c1810;
+    --ink-light:        #5c3d2e;
+    --gold:             #c9a227;
+    --gold-bright:      #f0c040;
+    --red:              #8b1a1a;
+    --red-bright:       #c0392b;
+    --green:            #2d6a2d;
+    --green-bright:     #4caf50;
+    --blue:             #1a3a5c;
+    --stone:            #7a6a5a;
+    --bg-dark:          #1a0f05;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg-dark);
+    background-image:
+      radial-gradient(ellipse at 20% 50%, #2a1505 0%, transparent 60%),
+      radial-gradient(ellipse at 80% 20%, #1a0a00 0%, transparent 50%);
+    font-family: 'IM Fell English', serif;
+    color: var(--ink);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  /* TITEL */
+  .title-banner {
+    width: 100%;
+    text-align: center;
+    padding: 16px 0 10px;
+  }
+  .title-banner h1 {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: clamp(1.6rem, 4vw, 2.8rem);
+    color: var(--gold-bright);
+    text-shadow: 0 0 30px #f0c04088, 2px 2px 0 #7a4a00;
+    letter-spacing: 6px;
+  }
+  .title-banner .subtitle {
+    font-family: 'Cinzel', serif;
+    color: var(--parchment-shadow);
+    font-size: 0.8rem;
+    letter-spacing: 4px;
+    margin-top: 4px;
+    opacity: 0.8;
+  }
+  .title-banner .powered-by {
+    font-family: 'IM Fell English', serif;
+    font-size: 0.65rem;
+    color: var(--gold);
+    opacity: 0.6;
+    letter-spacing: 2px;
+    margin-top: 3px;
+    font-style: italic;
+  }
+  .divider {
+    width: 60%; margin: 8px auto 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--gold), var(--gold-bright), var(--gold), transparent);
+    box-shadow: 0 0 8px var(--gold);
+  }
+
+  /* LAYOUT */
+  .game-container {
+    display: grid;
+    grid-template-columns: 260px 1fr 240px;
+    gap: 12px;
+    padding: 12px 16px 20px;
+    width: 100%;
+    max-width: 1300px;
+  }
+  @media (max-width: 1100px) {
+    .game-container { grid-template-columns: 1fr 1fr; }
+    .map-panel { grid-column: 1 / -1; order: -1; }
+  }
+  @media (max-width: 700px) {
+    .game-container { grid-template-columns: 1fr; }
+  }
+
+  /* PANEL BASIS – Referenz: VISUAL_SPEC.md §4 */
+  .panel {
+    background: var(--parchment);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100' height='100' filter='url(%23n)' opacity='0.06'/%3E%3C/svg%3E");
+    border: 3px solid var(--parchment-shadow);
+    border-radius: 4px;
+    box-shadow: inset 0 0 30px rgba(139,90,30,.15), 0 4px 20px rgba(0,0,0,.6);
+    position: relative;
+    overflow: hidden;
+  }
+  .panel::before {
+    content:''; position:absolute; inset:6px;
+    border:1px solid rgba(139,90,30,.3); pointer-events:none; border-radius:2px;
+  }
+  .panel-title {
+    font-family:'Cinzel',serif; font-size:.75rem; letter-spacing:3px;
+    text-transform:uppercase; color:var(--ink-light); text-align:center;
+    padding:10px 12px 6px;
+    border-bottom:1px solid var(--parchment-shadow);
+    background:linear-gradient(180deg,rgba(139,90,30,.1) 0%,transparent 100%);
+  }
+  .panel-content { padding:12px; }
+
+  /* RESSOURCEN */
+  .resource-row {
+    display:flex; align-items:center; gap:8px;
+    padding:6px 8px; margin-bottom:4px;
+    background:rgba(139,90,30,.06); border:1px solid rgba(139,90,30,.2);
+    border-radius:3px; transition:background .2s;
+  }
+  .resource-row:hover { background:rgba(139,90,30,.12); }
+  .res-icon { font-size:1.3rem; width:28px; text-align:center; }
+  .res-info { flex:1; }
+  .res-label { font-family:'Cinzel',serif; font-size:.6rem; letter-spacing:2px; color:var(--ink-light); text-transform:uppercase; }
+  .res-value { font-size:1.1rem; font-weight:bold; color:var(--ink); line-height:1.1; }
+  .res-delta { font-size:.7rem; font-style:italic; color:var(--stone); text-align:right; }
+  .res-delta.pos { color:var(--green); }
+  .res-delta.neg { color:var(--red-bright); }
+
+  /* RUNDE */
+  .round-info {
+    text-align:center; margin-top:14px; padding:8px;
+    background:rgba(201,162,39,.1); border:1px solid rgba(201,162,39,.4); border-radius:3px;
+  }
+  .round-num { font-family:'Cinzel Decorative',serif; font-size:1.5rem; color:var(--gold); text-shadow:0 0 10px var(--gold); line-height:1; }
+  .round-label { font-family:'Cinzel',serif; font-size:.55rem; letter-spacing:3px; color:var(--stone); text-transform:uppercase; }
+  .season-badge {
+    display:inline-block; margin-top:6px; padding:2px 10px;
+    background:rgba(139,90,30,.15); border:1px solid var(--parchment-shadow);
+    border-radius:2px; font-family:'Cinzel',serif; font-size:.65rem; color:var(--ink-light); letter-spacing:2px;
+  }
+
+  /* ZUFRIEDENHEITSBALKEN */
+  .sat-label { font-family:'Cinzel',serif; font-size:.6rem; letter-spacing:2px; color:var(--ink-light); text-transform:uppercase; margin-bottom:4px; }
+  .sat-bar-bg { height:14px; background:rgba(139,90,30,.2); border:1px solid var(--parchment-shadow); border-radius:2px; overflow:hidden; }
+  .sat-bar-fill { height:100%; transition:width .6s ease, background-position .6s; background:linear-gradient(90deg, var(--red-bright), var(--gold), var(--green-bright)); background-size:200% 100%; }
+  .sat-value { font-family:'Cinzel',serif; font-size:.75rem; text-align:center; margin-top:2px; color:var(--ink-light); }
+
+  /* BERATER */
+  .advisor-box {
+    margin-top:14px; padding:8px; background:rgba(139,90,30,.06);
+    border:1px solid rgba(139,90,30,.2); border-radius:3px;
+    font-size:.72rem; color:var(--ink-light); line-height:1.5; font-style:italic;
+  }
+  .advisor-title { font-style:normal; font-family:'Cinzel',serif; font-size:.6rem; letter-spacing:2px; color:var(--stone); text-transform:uppercase; }
+
+  /* G&V RECHNUNG */
+  .gv-box {
+    margin-top:10px; padding:8px; background:rgba(44,24,16,.04);
+    border:1px solid rgba(139,90,30,.25); border-radius:3px;
+  }
+  .gv-title { font-family:'Cinzel',serif; font-size:.58rem; letter-spacing:2px; color:var(--stone); text-transform:uppercase; margin-bottom:5px; }
+  .gv-row { display:flex; justify-content:space-between; font-size:.67rem; color:var(--ink-light); padding:1px 0; }
+  .gv-row.income { color:var(--green); }
+  .gv-row.expense { color:var(--red-bright); }
+  .gv-row.total { border-top:1px solid rgba(139,90,30,.3); margin-top:3px; padding-top:3px; font-family:'Cinzel',serif; font-size:.68rem; font-weight:bold; }
+  .gv-row.total.pos { color:var(--green); }
+  .gv-row.total.neg { color:var(--red-bright); }
+  /* SLIDER VORSCHAU */
+  .slider-hint { font-size:.58rem; color:var(--stone); margin-top:2px; }
+
+  /* SLIDER */
+  .action-section { margin-bottom:14px; }
+  .action-section-title { font-family:'Cinzel',serif; font-size:.6rem; letter-spacing:2px; color:var(--stone); text-transform:uppercase; margin-bottom:6px; padding-bottom:3px; border-bottom:1px solid rgba(139,90,30,.25); }
+  .slider-row { margin-bottom:10px; }
+  .slider-label { display:flex; justify-content:space-between; font-size:.78rem; color:var(--ink-light); margin-bottom:3px; }
+  .slider-val { font-family:'Cinzel',serif; font-size:.7rem; color:var(--gold); font-weight:bold; }
+  input[type=range] { width:100%; height:6px; -webkit-appearance:none; background:linear-gradient(90deg, var(--parchment-shadow), var(--parchment-dark)); border-radius:3px; outline:none; border:1px solid rgba(139,90,30,.4); }
+  input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:16px; height:16px; background:radial-gradient(circle, var(--gold-bright), var(--gold)); border:2px solid var(--parchment-shadow); border-radius:50%; cursor:pointer; box-shadow:0 0 6px rgba(201,162,39,.5); }
+
+  /* BUTTONS */
+  .btn { width:100%; padding:9px 12px; font-family:'Cinzel',serif; font-size:.72rem; letter-spacing:2px; text-transform:uppercase; border:none; border-radius:3px; cursor:pointer; transition:all .2s; margin-bottom:6px; }
+  .btn-primary { background:linear-gradient(135deg,#3a2000,#6a3a00,#3a2000); color:var(--gold-bright); border:2px solid var(--gold); box-shadow:0 0 10px rgba(201,162,39,.3); animation:pulse-glow 3s infinite; }
+  .btn-primary:hover { background:linear-gradient(135deg,#5a3000,#8a5000,#5a3000); transform:translateY(-1px); }
+  .btn-danger { background:linear-gradient(135deg,#3a0000,#6a1010,#3a0000); color:#f08080; border:2px solid var(--red); }
+  .btn-danger:hover { background:linear-gradient(135deg,#5a0a0a,#8a2020,#5a0a0a); transform:translateY(-1px); }
+  .btn:disabled { opacity:.4; cursor:not-allowed; transform:none !important; animation:none; }
+
+  /* API KEY */
+  .api-input { width:100%; padding:6px 8px; font-family:'Cinzel',serif; font-size:.65rem; background:rgba(139,90,30,.08); border:1px solid var(--parchment-shadow); border-radius:3px; color:var(--ink); margin-bottom:5px; }
+  .api-status { font-size:.65rem; font-style:italic; color:var(--stone); text-align:center; }
+
+  /* KARTE */
+  .map-svg-container { padding:14px; position:relative; }
+  .map-img-wrap { position:relative; display:block; width:100%; }
+  .map-img-wrap img { width:100%; height:auto; display:block; border-radius:6px; filter:drop-shadow(0 4px 16px rgba(0,0,0,.55)); }
+  .map-badge {
+    position:absolute;
+    padding:3px 8px;
+    border-radius:3px;
+    font-family:'Cinzel',serif;
+    font-size:.58rem;
+    color:#f4e4c1;
+    font-weight:700;
+    letter-spacing:.8px;
+    pointer-events:none;
+    box-shadow:0 2px 8px rgba(0,0,0,.6);
+    white-space:nowrap;
+    text-shadow:0 1px 2px rgba(0,0,0,.7);
+    border:1px solid rgba(255,255,255,.2);
+  }
+  .map-legend { display:flex; gap:12px; padding:4px 14px 8px; flex-wrap:wrap; }
+  .legend-item { display:flex; align-items:center; gap:4px; font-family:'Cinzel',serif; font-size:.55rem; letter-spacing:1px; color:var(--ink-light); }
+  .legend-dot { width:10px; height:10px; border-radius:50%; border:1px solid rgba(0,0,0,.3); }
+
+  /* EREIGNISBOX */
+  .event-box { margin:0 14px 14px; padding:10px 12px; background:rgba(139,90,30,.08); border:1px solid var(--parchment-shadow); border-radius:3px; min-height:60px; font-style:italic; font-size:.85rem; color:var(--ink); line-height:1.5; position:relative; animation:fadeIn .4s ease; }
+  .event-box::before { content:'📜'; position:absolute; top:-8px; left:10px; font-size:1rem; font-style:normal; }
+  .event-title { font-family:'Cinzel',serif; font-size:.65rem; letter-spacing:2px; font-style:normal; color:var(--red); text-transform:uppercase; margin-bottom:4px; }
+
+  /* TOOLTIP */
+  .map-tooltip { position:fixed; background:var(--parchment); border:2px solid var(--parchment-shadow); border-radius:4px; padding:8px 12px; font-size:.78rem; color:var(--ink); pointer-events:none; z-index:500; box-shadow:0 4px 16px rgba(0,0,0,.5); max-width:160px; display:none; }
+  .tooltip-name { font-family:'Cinzel',serif; font-size:.7rem; font-weight:700; margin-bottom:3px; }
+  .tooltip-info { font-size:.7rem; color:var(--ink-light); font-style:italic; }
+
+  /* MODAL */
+  .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.75); display:none; align-items:center; justify-content:center; z-index:200; }
+  .modal-overlay.active { display:flex; }
+  .modal { background:var(--parchment); border:3px solid var(--parchment-shadow); border-radius:6px; padding:30px 36px; max-width:480px; width:90%; text-align:center; box-shadow:0 0 60px rgba(0,0,0,.8), inset 0 0 40px rgba(139,90,30,.1); position:relative; }
+  .modal::before { content:''; position:absolute; inset:10px; border:1px solid rgba(139,90,30,.25); pointer-events:none; border-radius:3px; }
+  .modal h2 { font-family:'Cinzel Decorative',serif; font-size:1.4rem; color:var(--red); margin-bottom:12px; }
+  .modal h2.good { color:var(--green); }
+  .modal p { font-size:.9rem; line-height:1.6; margin-bottom:16px; font-style:italic; }
+  .modal-icon { font-size:3rem; margin-bottom:10px; display:block; }
+
+  /* GAME OVER */
+  .game-over-screen { position:fixed; inset:0; background:rgba(0,0,0,.92); display:none; align-items:center; justify-content:center; z-index:300; flex-direction:column; }
+  .game-over-screen.active { display:flex; }
+  .game-over-inner { text-align:center; padding:40px; }
+  .game-over-inner h1 { font-family:'Cinzel Decorative',serif; font-size:clamp(1.8rem,5vw,3rem); color:var(--gold-bright); text-shadow:0 0 40px var(--gold); margin-bottom:16px; animation:flicker 2s infinite; }
+  .game-over-inner p { font-family:'Cinzel',serif; font-size:1rem; color:var(--parchment); letter-spacing:2px; margin-bottom:8px; }
+  .game-over-inner .score { font-family:'Cinzel Decorative',serif; font-size:2rem; color:var(--gold); margin:20px 0; }
+
+  /* ANIMATIONEN */
+  @keyframes pulse-glow { 0%,100%{box-shadow:0 0 10px rgba(201,162,39,.3)} 50%{box-shadow:0 0 20px rgba(201,162,39,.6)} }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
+  @keyframes flicker { 0%,100%{opacity:1} 92%{opacity:1} 93%{opacity:.6} 94%{opacity:1} }
+  @keyframes warnFlash { 0%,100%{background:var(--parchment)} 50%{background:#f8d0b0} }
+  .warning-flash { animation:warnFlash .5s ease 3; }
+  /* KARTEN-ANIMATIONEN */
+  @keyframes sea-shimmer { 0%,100%{opacity:.1} 50%{opacity:.2} }
+  .sea-waves { animation:sea-shimmer 5s ease-in-out infinite; }
+  @keyframes ship-bob { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-3px)} }
+  .ship-float { animation:ship-bob 4s ease-in-out infinite; transform-origin:36px 14px; }
+</style>
+</head>
+<body>
+
+<div class="title-banner">
+  <h1>⚔ KAISER ⚔</h1>
+  <div class="subtitle">Das Königreich · Anno Domini</div>
+  <div class="powered-by">Powered by NeuralNautic · Built with Claude Code</div>
+  <div class="divider"></div>
+</div>
+
+<div class="game-container">
+
+  <!-- LINKES PANEL: RESSOURCEN -->
+  <div class="panel" id="left-panel">
+    <div class="panel-title">📊 Königliche Chronik</div>
+    <div class="panel-content">
+
+      <div class="round-info">
+        <div class="round-label">Jahr des Herrn</div>
+        <div class="round-num" id="round-display">1</div>
+        <div class="round-label">von 20</div>
+        <div class="season-badge" id="season-display">🌱 Frühling</div>
+      </div>
+
+      <div style="margin-top:12px">
+        <div class="resource-row"><span class="res-icon">👑</span><div class="res-info"><div class="res-label">Gold</div><div class="res-value" id="gold-val">500</div></div><div class="res-delta" id="gold-delta">--</div></div>
+        <div class="resource-row"><span class="res-icon">🌾</span><div class="res-info"><div class="res-label">Getreide</div><div class="res-value" id="grain-val">800</div></div><div class="res-delta" id="grain-delta">--</div></div>
+        <div class="resource-row"><span class="res-icon">👥</span><div class="res-info"><div class="res-label">Bevölkerung</div><div class="res-value" id="pop-val">200</div><div class="res-label" id="pop-cap-label" style="font-size:.55rem;color:var(--stone)">Grenze: 300</div></div><div class="res-delta" id="pop-delta">--</div></div>
+        <div class="resource-row"><span class="res-icon">⚔️</span><div class="res-info"><div class="res-label">Soldaten</div><div class="res-value" id="soldiers-val">30</div></div><div class="res-delta" id="soldiers-delta">--</div></div>
+        <div class="resource-row"><span class="res-icon">🏰</span><div class="res-info"><div class="res-label">Gebiete</div><div class="res-value" id="land-val">3</div></div><div class="res-delta" id="land-delta">--</div></div>
+      </div>
+
+      <div style="margin-top:14px">
+        <div class="sat-label">⚖ Zufriedenheit</div>
+        <div class="sat-bar-bg"><div class="sat-bar-fill" id="sat-bar" style="width:65%"></div></div>
+        <div class="sat-value" id="sat-val">65%</div>
+      </div>
+
+      <div class="advisor-box">
+        <div class="advisor-title">Hofchronist:</div>
+        <span id="advisor-text">Die Ernte steht gut. Das Volk blickt erwartungsvoll auf Euch.</span>
+      </div>
+
+      <div class="gv-box" id="gv-box">
+        <div class="gv-title">📒 Letzte Runde – Bilanz</div>
+        <div class="gv-row income"><span>+ Steuern</span><span id="gv-tax">–</span></div>
+        <div class="gv-row income"><span>+ Getreideverkauf</span><span id="gv-grain-sell">–</span></div>
+        <div class="gv-row expense"><span>− Rekrutierung</span><span id="gv-recruit">–</span></div>
+        <div class="gv-row expense"><span>− Soldatenunterhalt</span><span id="gv-upkeep">–</span></div>
+        <div class="gv-row" id="gv-event-row" style="display:none;font-size:.65rem"><span id="gv-event-label">Ereignis</span><span id="gv-event-val">–</span></div>
+        <div class="gv-row total" id="gv-total-row"><span>= Gold-Saldo</span><span id="gv-total">–</span></div>
+        <div style="border-top:1px solid rgba(139,90,30,.2);margin:4px 0"></div>
+        <div class="gv-row income" id="gv-grain-total-row"><span>= Getreide-Saldo</span><span id="gv-grain-total">–</span></div>
+        <div class="gv-row" style="color:var(--stone);font-size:.6rem"><span>↳ Ernte</span><span id="gv-harvest">–</span></div>
+        <div class="gv-row" style="color:var(--stone);font-size:.6rem"><span>↳ Verteilt</span><span id="gv-dist">–</span></div>
+        <div class="gv-row" style="color:var(--stone);font-size:.6rem"><span>↳ Verkauft</span><span id="gv-sold">–</span></div>
+        <div class="gv-row" id="gv-event-grain-row" style="display:none;font-size:.6rem"><span id="gv-event-grain-label">↳ Ereignis</span><span id="gv-event-grain-val">–</span></div>
+        <div style="border-top:1px solid rgba(139,90,30,.2);margin:4px 0"></div>
+        <div class="gv-row" style="color:var(--stone);font-size:.6rem"><span>Feindstärke</span><span id="gv-enemy">–</span></div>
+        <div class="gv-row" style="color:var(--stone);font-size:.6rem"><span>Angriffsmacht</span><span id="gv-atk">–</span></div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- MITTLERES PANEL: KARTE -->
+  <div class="panel map-panel">
+    <div class="panel-title">🗺 Karte des Reiches</div>
+    <div class="map-svg-container">
+
+      <!-- KARTE (Gemini-Illustration) -->
+      <div class="map-img-wrap">
+        <img src="karte.png" alt="Tabula Regni Kaiseris"/>
+
+        <!-- Conquest-Badges (erscheinen wenn Land erobert wird) -->
+        <div id="region-mountains" class="map-badge" style="top:23%;left:65%;opacity:0;transition:opacity .6s;background:rgba(40,100,20,.9);">⚔️ St. Hubertus – Erobert</div>
+        <div id="region-enemy1"    class="map-badge" style="top:17%;left:79%;opacity:0;transition:opacity .6s;background:rgba(40,100,20,.9);">⚔️ Red Keep – Erobert</div>
+        <div id="region-enemy2"    class="map-badge" style="top:63%;left:32%;opacity:0;transition:opacity .6s;background:rgba(40,100,20,.9);">⚔️ Sonnburg – Verbündet</div>
+
+        <!-- Gebäude-Badges -->
+        <div id="map-market"  class="map-badge" style="top:42%;left:51%;opacity:0;transition:opacity .6s;background:rgba(160,110,20,.92);">🏪 Marktplatz</div>
+        <div id="map-market-label"  style="display:none;"></div>
+        <div id="map-housing" class="map-badge" style="top:55%;left:36%;opacity:0;transition:opacity .6s;background:rgba(110,70,25,.9);">🏘 Wohnviertel</div>
+        <div id="map-housing-label" style="display:none;"></div>
+      </div>
+
+      <!-- ALTES SVG – Platzhalter damit IDs noch gefunden werden -->
+      <svg id="kingdom-map" viewBox="0 0 1 1" xmlns="http://www.w3.org/2000/svg" style="display:none;">
+        <defs>
+          <filter id="shadow"><feDropShadow dx="2" dy="2" stdDeviation="3" flood-opacity=".4"/></filter>
+          <filter id="glow-gold">
+            <feGaussianBlur stdDeviation="5" result="blur"/>
+            <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+
+          <!-- SEE -->
+          <radialGradient id="waterGrad" cx="40%" cy="35%" r="70%">
+            <stop offset="0%" stop-color="#4a92b8"/>
+            <stop offset="55%" stop-color="#2a6888"/>
+            <stop offset="100%" stop-color="#14405e"/>
+          </radialGradient>
+          <pattern id="wavePattern" x="0" y="0" width="40" height="18" patternUnits="userSpaceOnUse">
+            <path d="M0,9 Q10,4 20,9 Q30,14 40,9" fill="none" stroke="rgba(255,255,255,0.11)" stroke-width="1.2"/>
+            <path d="M-20,14 Q-10,9 0,14 Q10,19 20,14" fill="none" stroke="rgba(255,255,255,0.07)" stroke-width="1"/>
+          </pattern>
+
+          <!-- REGION GRADIENTEN -->
+          <linearGradient id="nordGrad" x1="0%" y1="0%" x2="20%" y2="100%">
+            <stop offset="0%" stop-color="#7aba54"/><stop offset="100%" stop-color="#4a821e"/>
+          </linearGradient>
+          <linearGradient id="centerGrad" x1="0%" y1="0%" x2="50%" y2="100%">
+            <stop offset="0%" stop-color="#72b24c"/><stop offset="100%" stop-color="#3a7218"/>
+          </linearGradient>
+          <radialGradient id="enemyGrad" cx="50%" cy="30%" r="75%">
+            <stop offset="0%" stop-color="#b02828"/><stop offset="100%" stop-color="#580808"/>
+          </radialGradient>
+          <radialGradient id="allyGrad" cx="50%" cy="30%" r="75%">
+            <stop offset="0%" stop-color="#2a82bb"/><stop offset="100%" stop-color="#083a6a"/>
+          </radialGradient>
+          <linearGradient id="mountainGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stop-color="#dce5ec"/><stop offset="40%" stop-color="#9a8a7a"/><stop offset="100%" stop-color="#6a5a4a"/>
+          </linearGradient>
+
+          <!-- MUSTER -->
+          <pattern id="forestPattern" x="0" y="0" width="12" height="12" patternUnits="userSpaceOnUse">
+            <rect width="12" height="12" fill="#346024"/><polygon points="6,1 2,10 10,10" fill="#1e4812" opacity=".75"/>
+          </pattern>
+          <pattern id="farmPattern" x="0" y="0" width="10" height="10" patternUnits="userSpaceOnUse">
+            <rect width="10" height="10" fill="#c8b46a"/>
+            <line x1="0" y1="5" x2="10" y2="5" stroke="#a89040" stroke-width=".5"/>
+            <line x1="5" y1="0" x2="5" y2="10" stroke="#a89040" stroke-width=".5"/>
+          </pattern>
+
+          <!-- VIGNETTE -->
+          <radialGradient id="vignetteGrad" cx="50%" cy="50%" r="70%">
+            <stop offset="50%" stop-color="rgba(0,0,0,0)"/>
+            <stop offset="100%" stop-color="rgba(8,4,0,0.5)"/>
+          </radialGradient>
+          <!-- KAPITAL GLOW -->
+          <radialGradient id="capitalGlow" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="rgba(201,162,39,0.3)"/>
+            <stop offset="100%" stop-color="rgba(201,162,39,0)"/>
+          </radialGradient>
+        </defs>
+
+        <!-- SEE BASIS -->
+        <rect width="600" height="420" fill="url(#waterGrad)" rx="4"/>
+        <rect width="600" height="420" fill="url(#wavePattern)" rx="4" class="sea-waves" pointer-events="none"/>
+        <!-- Küstenlinien (dekorativ) -->
+        <path d="M0,58 Q50,50 100,58 Q150,66 200,58 Q250,50 300,58 Q350,66 400,58" fill="none" stroke="rgba(255,255,255,0.07)" stroke-width="1.5"/>
+        <path d="M0,75 Q60,67 120,75 Q180,83 240,75" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="1.2"/>
+
+        <!-- REGIONEN – klickbar, mit Tooltip -->
+        <path class="region" id="region-nord"     d="M140,30 Q200,20 280,35 Q340,28 380,45 Q360,95 340,110 Q310,105 280,100 Q240,108 210,100 Q180,92 160,80 Q140,70 130,55 Z" style="fill:url(#nordGrad);stroke:#3a6a18;stroke-width:1.2"/>
+        <path class="region" id="region-west"     d="M60,120 Q100,90 150,80 Q155,100 148,125 Q140,155 130,175 Q110,170 90,160 Q65,148 55,135 Z" style="fill:url(#forestPattern);stroke:#1a4008;stroke-width:1.2"/>
+        <path class="region" id="region-center"   d="M160,80 Q210,100 280,100 Q310,105 340,110 Q350,135 345,160 Q330,185 300,195 Q265,200 235,195 Q205,185 185,170 Q165,155 158,135 Q148,125 155,100 Z" style="fill:url(#centerGrad);stroke:#3a6a18;stroke-width:1.2"/>
+        <path class="region" id="region-farm"     d="M280,100 Q340,110 380,115 Q400,140 395,165 Q380,185 355,192 Q330,195 300,195 Q330,185 345,160 Q350,135 340,110 Z" style="fill:url(#farmPattern);stroke:#987820;stroke-width:1.2"/>
+        <path class="region" id="region-mountains"d="M380,45 Q440,30 500,50 Q530,70 520,100 Q500,115 470,110 Q440,118 410,110 Q385,100 380,80 Z" style="fill:url(#mountainGrad);stroke:#5a4a3a;stroke-width:1.5"/>
+        <path class="region" id="region-enemy1"   d="M500,50 Q555,45 590,75 Q595,110 575,130 Q550,140 520,130 Q500,115 520,100 Z" style="fill:url(#enemyGrad);stroke:#480808;stroke-width:1.5;opacity:.88"/>
+        <path class="region" id="region-enemy2"   d="M395,165 Q430,160 460,175 Q480,195 470,220 Q450,235 420,230 Q395,220 385,200 Z" style="fill:url(#enemyGrad);stroke:#480808;stroke-width:1.5;opacity:.88"/>
+        <path class="region" id="region-ally"     d="M185,170 Q235,195 300,195 Q300,230 285,255 Q260,270 230,265 Q200,258 180,240 Q162,220 165,200 Z" style="fill:url(#allyGrad);stroke:#083a5a;stroke-width:1.5;opacity:.82"/>
+
+        <!-- BERGGIPFEL – schärfer, mehr Peaks -->
+        <g opacity=".95" filter="url(#shadow)">
+          <polygon points="420,85 410,108 430,108" fill="#8a9aaa" stroke="#6a7a8a" stroke-width=".5"/><polygon points="420,81 414,93 426,93" fill="#eef3f7"/>
+          <polygon points="445,78 433,105 457,105" fill="#7a8a9a"/><polygon points="445,73 438,89 452,89" fill="#eef3f7"/>
+          <polygon points="468,90 458,110 478,110" fill="#8a9aaa"/><polygon points="468,86 462,98 474,98" fill="#eef3f7"/>
+          <polygon points="493,70 483,95 503,95" fill="#7a8a9a"/><polygon points="493,65 486,81 500,81" fill="#eef3f7"/>
+          <polygon points="432,93 425,109 439,109" fill="#8898a8" opacity=".7"/>
+          <polygon points="478,82 472,99 484,99" fill="#7a8a9a" opacity=".7"/>
+        </g>
+
+        <!-- BÄUME WESTWALD – dichter -->
+        <g opacity=".92">
+          <polygon points="80,120 74,138 86,138" fill="#1a3e10"/><polygon points="80,117 77,127 83,127" fill="#2a5618"/>
+          <polygon points="95,130 89,146 101,146" fill="#1a3e10"/><polygon points="95,127 92,137 98,137" fill="#2a5618"/>
+          <polygon points="110,115 104,132 116,132" fill="#1a3e10"/><polygon points="110,112 107,122 113,122" fill="#2a5618"/>
+          <polygon points="125,125 119,142 131,142" fill="#1a3e10"/><polygon points="125,122 122,132 128,132" fill="#2a5618"/>
+          <polygon points="70,145 64,162 76,162" fill="#1a3e10"/><polygon points="70,142 67,152 73,152" fill="#2a5618"/>
+          <polygon points="100,148 94,164 106,164" fill="#1a3e10"/><polygon points="100,145 97,155 103,155" fill="#2a5618"/>
+          <polygon points="115,140 109,156 121,156" fill="#1a3e10" opacity=".85"/><polygon points="115,137 112,147 118,147" fill="#2a5618" opacity=".85"/>
+          <polygon points="85,155 79,170 91,170" fill="#1a3e10" opacity=".8"/><polygon points="85,152 82,162 88,162" fill="#2a5618" opacity=".8"/>
+          <polygon points="68,128 63,143 73,143" fill="#1a3e10" opacity=".8"/>
+          <polygon points="132,135 127,149 137,149" fill="#224a12" opacity=".75"/>
+        </g>
+
+        <!-- ACKERFELDER – mehr Detail -->
+        <g opacity=".78">
+          <rect x="318" y="125" width="22" height="14" fill="#d4b840" stroke="#a89030" stroke-width=".5" rx="1"/>
+          <line x1="318" y1="132" x2="340" y2="132" stroke="#a89030" stroke-width=".5"/>
+          <line x1="325" y1="125" x2="325" y2="139" stroke="#a89030" stroke-width=".5"/>
+          <rect x="346" y="130" width="22" height="14" fill="#c8a830" stroke="#a89030" stroke-width=".5" rx="1"/>
+          <line x1="346" y1="137" x2="368" y2="137" stroke="#a89030" stroke-width=".5"/>
+          <rect x="320" y="145" width="28" height="16" fill="#d4b840" stroke="#a89030" stroke-width=".5" rx="1"/>
+          <line x1="320" y1="153" x2="348" y2="153" stroke="#a89030" stroke-width=".5"/>
+          <rect x="352" y="118" width="18" height="10" fill="#c0a028" stroke="#987820" stroke-width=".5" rx="1" opacity=".8"/>
+        </g>
+
+        <!-- FLUSS – animiert -->
+        <path d="M280,35 Q275,70 270,100 Q265,130 260,160 Q255,190 258,220" fill="none" stroke="#2a7898" stroke-width="5.5" opacity=".45" stroke-linecap="round"/>
+        <path d="M280,35 Q275,70 270,100 Q265,130 260,160 Q255,190 258,220" fill="none" stroke="#6ac0e0" stroke-width="2.5" opacity=".7" stroke-linecap="round" stroke-dasharray="18,6">
+          <animate attributeName="stroke-dashoffset" values="0;-96" dur="4s" repeatCount="indefinite"/>
+        </path>
+        <path d="M280,35 Q275,70 270,100 Q265,130 260,160 Q255,190 258,220" fill="none" stroke="#c8eaf8" stroke-width="1" opacity=".3" stroke-linecap="round"/>
+        <text x="248" y="145" font-family="IM Fell English,serif" font-size="7" fill="#1a5070" opacity=".85" transform="rotate(-80,248,145)">Silberbach</text>
+
+        <!-- STRASSEN -->
+        <path d="M240,50 Q255,80 260,120 Q262,150 258,190" fill="none" stroke="#c8a870" stroke-width="2.5" opacity=".55" stroke-dasharray="6,4"/>
+        <path d="M200,120 Q230,140 260,150 Q300,160 340,155" fill="none" stroke="#c8a870" stroke-width="2" opacity=".55" stroke-dasharray="5,4"/>
+
+        <!-- HAUPTSTADT Kaisersheim – mit Glow + Rauch -->
+        <circle cx="244" cy="148" r="26" fill="url(#capitalGlow)"/>
+        <g filter="url(#shadow)">
+          <rect x="228" y="138" width="28" height="20" fill="#8a7a5a" stroke="#4a3a1a" stroke-width="1.5" rx="1"/>
+          <rect x="224" y="132" width="8" height="14" fill="#9a8a6a" stroke="#4a3a1a" stroke-width="1.5" rx="1"/>
+          <rect x="252" y="132" width="8" height="14" fill="#9a8a6a" stroke="#4a3a1a" stroke-width="1.5" rx="1"/>
+          <rect x="224" y="130" width="2" height="3" fill="#4a3a1a"/><rect x="227" y="130" width="2" height="3" fill="#4a3a1a"/><rect x="230" y="130" width="2" height="3" fill="#4a3a1a"/>
+          <rect x="252" y="130" width="2" height="3" fill="#4a3a1a"/><rect x="255" y="130" width="2" height="3" fill="#4a3a1a"/><rect x="258" y="130" width="2" height="3" fill="#4a3a1a"/>
+          <rect x="232" y="140" width="4" height="5" fill="#2a1a0a" rx=".5"/>
+          <rect x="248" y="140" width="4" height="5" fill="#2a1a0a" rx=".5"/>
+          <path d="M237,158 Q237,148 244,148 Q251,148 251,158" fill="#2a1a0a"/>
+          <line x1="244" y1="130" x2="244" y2="116" stroke="#4a3a1a" stroke-width="1.5"/>
+          <polygon points="244,116 256,120 244,124" fill="#c9a227" stroke="#8a6a10" stroke-width=".5"/>
+        </g>
+        <!-- Rauch-Animationen -->
+        <circle cx="237" cy="130" r="2.5" fill="#b8a898" opacity="0">
+          <animate attributeName="cy" values="130;118;106" dur="2.2s" repeatCount="indefinite"/>
+          <animate attributeName="r" values="2.5;4.5;7" dur="2.2s" repeatCount="indefinite"/>
+          <animate attributeName="opacity" values="0.55;0.3;0" dur="2.2s" repeatCount="indefinite"/>
+        </circle>
+        <circle cx="244" cy="128" r="3" fill="#c0b0a0" opacity="0">
+          <animate attributeName="cy" values="128;115;102" dur="2.2s" begin="0.75s" repeatCount="indefinite"/>
+          <animate attributeName="r" values="3;5;8" dur="2.2s" begin="0.75s" repeatCount="indefinite"/>
+          <animate attributeName="opacity" values="0.5;0.25;0" dur="2.2s" begin="0.75s" repeatCount="indefinite"/>
+        </circle>
+        <circle cx="251" cy="131" r="2" fill="#b8a898" opacity="0">
+          <animate attributeName="cy" values="131;120;109" dur="2.2s" begin="1.5s" repeatCount="indefinite"/>
+          <animate attributeName="r" values="2;3.5;6" dur="2.2s" begin="1.5s" repeatCount="indefinite"/>
+          <animate attributeName="opacity" values="0.45;0.2;0" dur="2.2s" begin="1.5s" repeatCount="indefinite"/>
+        </circle>
+        <text x="244" y="173" font-family="Cinzel,serif" font-size="8.5" fill="#2c1810" text-anchor="middle" font-weight="700">Kaisersheim</text>
+        <text x="244" y="182" font-family="IM Fell English,serif" font-size="6.5" fill="#5c3d2e" text-anchor="middle" font-style="italic">Hauptstadt</text>
+
+        <!-- DÖRFER -->
+        <g filter="url(#shadow)">
+          <rect x="194" y="55" width="12" height="9" fill="#c8a870" stroke="#6a4820" stroke-width="1"/>
+          <polygon points="190,55 206,55 198,46" fill="#7a2808" stroke="#5a1800" stroke-width="1"/>
+          <rect x="200" y="57" width="3" height="4" fill="#3a2010"/>
+        </g>
+        <text x="198" y="72" font-family="Cinzel,serif" font-size="7" fill="#2c1810" text-anchor="middle">Nordburg</text>
+        <g filter="url(#shadow)">
+          <rect x="93" y="138" width="12" height="9" fill="#c8a870" stroke="#6a4820" stroke-width="1"/>
+          <polygon points="89,138 105,138 97,129" fill="#7a2808"/>
+          <rect x="99" y="140" width="3" height="4" fill="#3a2010"/>
+        </g>
+        <text x="97" y="155" font-family="Cinzel,serif" font-size="7" fill="#2c1810" text-anchor="middle">Waldheim</text>
+        <g filter="url(#shadow)">
+          <rect x="352" y="148" width="16" height="12" fill="#c8a870" stroke="#6a4820" stroke-width="1.2"/>
+          <polygon points="348,148 370,148 359,137" fill="#7a2808"/>
+          <rect x="358" y="150" width="4" height="6" fill="#3a2010"/>
+        </g>
+        <text x="360" y="169" font-family="Cinzel,serif" font-size="7" fill="#2c1810" text-anchor="middle">Erntefeld</text>
+
+        <!-- MARKTPLATZ – erscheint wenn hasMarket (Ostseite der Hauptstadt) -->
+        <g id="map-market" opacity="0" filter="url(#shadow)" style="transition:opacity .6s">
+          <!-- Marktgebäude mit Arkaden -->
+          <rect x="272" y="148" width="26" height="16" fill="#d4a848" stroke="#8a6010" stroke-width="1.2" rx="1"/>
+          <!-- Arkaden-Bögen (3 Bögen) -->
+          <path d="M274,164 Q277,157 280,164" fill="#c89030" stroke="#8a6010" stroke-width=".8"/>
+          <path d="M280,164 Q283,157 286,164" fill="#c89030" stroke="#8a6010" stroke-width=".8"/>
+          <path d="M286,164 Q289,157 292,164" fill="#c89030" stroke="#8a6010" stroke-width=".8"/>
+          <!-- Vordach (buntes Markisendach) -->
+          <polygon points="270,148 300,148 298,142 272,142" fill="#c03010" stroke="#801800" stroke-width=".8"/>
+          <line x1="275" y1="142" x2="275" y2="148" stroke="#801800" stroke-width=".5"/>
+          <line x1="282" y1="142" x2="282" y2="148" stroke="#801800" stroke-width=".5"/>
+          <line x1="289" y1="142" x2="289" y2="148" stroke="#801800" stroke-width=".5"/>
+          <line x1="296" y1="142" x2="296" y2="148" stroke="#801800" stroke-width=".5"/>
+          <!-- Flagge -->
+          <line x1="285" y1="142" x2="285" y2="134" stroke="#6a4010" stroke-width="1.2"/>
+          <polygon points="285,134 294,137 285,140" fill="#c9a227" stroke="#8a6010" stroke-width=".5"/>
+          <!-- Waren-Tische links und rechts -->
+          <rect x="265" y="158" width="7" height="5" fill="#d4a040" stroke="#8a6010" stroke-width=".7" rx=".5"/>
+          <circle cx="267" cy="157" r="1.5" fill="#c03010" opacity=".8"/>
+          <circle cx="270" cy="156" r="1.2" fill="#c9a227" opacity=".8"/>
+          <rect x="298" y="158" width="7" height="5" fill="#d4a040" stroke="#8a6010" stroke-width=".7" rx=".5"/>
+          <circle cx="300" cy="157" r="1.5" fill="#2d6a2d" opacity=".8"/>
+          <circle cx="303" cy="156" r="1.2" fill="#c9a227" opacity=".8"/>
+        </g>
+        <text id="map-market-label" x="285" y="174" font-family="Cinzel,serif" font-size="6.5" fill="#8a6010" text-anchor="middle" opacity="0" font-weight="700" style="transition:opacity .6s">Marktplatz</text>
+
+        <!-- WOHNVIERTEL – erscheint wenn housingLevel >= 1 (südl. der Hauptstadt) -->
+        <g id="map-housing" opacity="0" filter="url(#shadow)" style="transition:opacity .6s">
+          <!-- Haus 1 -->
+          <rect x="192" y="180" width="11" height="9" fill="#c8b070" stroke="#6a4820" stroke-width=".9"/>
+          <polygon points="189,180 206,180 198,171" fill="#8a3010" stroke="#5a1800" stroke-width=".8"/>
+          <rect x="196" y="182" width="3" height="4" fill="#2a1a0a" rx=".3"/>
+          <!-- Haus 2 -->
+          <rect x="207" y="181" width="11" height="9" fill="#d0b880" stroke="#6a4820" stroke-width=".9"/>
+          <polygon points="204,181 221,181 213,172" fill="#7a2808" stroke="#5a1800" stroke-width=".8"/>
+          <rect x="211" y="183" width="3" height="4" fill="#2a1a0a" rx=".3"/>
+          <!-- Haus 3 -->
+          <rect x="222" y="180" width="11" height="9" fill="#c8b888" stroke="#6a4820" stroke-width=".9"/>
+          <polygon points="219,180 236,180 228,171" fill="#8a3818" stroke="#5a1800" stroke-width=".8"/>
+          <rect x="226" y="182" width="3" height="4" fill="#2a1a0a" rx=".3"/>
+          <!-- Straße -->
+          <rect x="189" y="189" width="47" height="3" fill="#c8a870" stroke="#a08040" stroke-width=".5" opacity=".7"/>
+        </g>
+        <text id="map-housing-label" x="213" y="198" font-family="Cinzel,serif" font-size="6.5" fill="#5c3d2e" text-anchor="middle" opacity="0" style="transition:opacity .6s">Wohnviertel</text>
+
+        <!-- KLOSTER -->
+        <g filter="url(#shadow)">
+          <rect x="448" y="92" width="14" height="16" fill="#d4c8a8" stroke="#6a5a40" stroke-width="1.2"/>
+          <polygon points="448,92 462,92 455,82" fill="#7a6a50"/>
+          <line x1="455" y1="84" x2="455" y2="92" stroke="#4a3a20" stroke-width="1.2"/>
+          <line x1="452" y1="87" x2="458" y2="87" stroke="#4a3a20" stroke-width="1.2"/>
+        </g>
+        <text x="455" y="117" font-family="Cinzel,serif" font-size="7" fill="#2c1810" text-anchor="middle">St. Hubertus</text>
+
+        <!-- FEINDBURG -->
+        <g filter="url(#shadow)">
+          <rect x="540" y="78" width="20" height="15" fill="#5a2828" stroke="#280808" stroke-width="1.5"/>
+          <rect x="536" y="72" width="7" height="10" fill="#6a3838" stroke="#280808" stroke-width="1.5"/>
+          <rect x="557" y="72" width="7" height="10" fill="#6a3838" stroke="#280808" stroke-width="1.5"/>
+          <rect x="536" y="70" width="2" height="3" fill="#280808"/><rect x="539" y="70" width="2" height="3" fill="#280808"/><rect x="542" y="70" width="2" height="3" fill="#280808"/>
+          <rect x="557" y="70" width="2" height="3" fill="#280808"/><rect x="560" y="70" width="2" height="3" fill="#280808"/><rect x="563" y="70" width="2" height="3" fill="#280808"/>
+          <line x1="550" y1="72" x2="550" y2="60" stroke="#280808" stroke-width="1.5"/>
+          <polygon points="550,60 560,64 550,68" fill="#8b1a1a"/>
+        </g>
+        <text x="550" y="100" font-family="Cinzel,serif" font-size="7" fill="#8b1a1a" text-anchor="middle" font-weight="700">Finsterfels</text>
+
+        <!-- VERBÜNDETE STADT -->
+        <g filter="url(#shadow)">
+          <rect x="232" y="228" width="16" height="12" fill="#a8c8d8" stroke="#185070" stroke-width="1.2"/>
+          <polygon points="228,228 250,228 239,218" fill="#18487a"/>
+          <rect x="238" y="230" width="4" height="6" fill="#08202a"/>
+          <line x1="239" y1="218" x2="239" y2="208" stroke="#08202a" stroke-width="1.2"/>
+          <polygon points="239,208 247,212 239,216" fill="#1a78b8"/>
+        </g>
+        <text x="239" y="247" font-family="Cinzel,serif" font-size="7" fill="#1a3a5c" text-anchor="middle">Sonnburg</text>
+
+        <!-- SEESCHLANGE -->
+        <g opacity=".75">
+          <path d="M456,294 Q474,278 492,294 Q510,310 528,296 Q542,285 552,300" fill="none" stroke="#14486a" stroke-width="10" stroke-linecap="round"/>
+          <path d="M456,294 Q474,278 492,294 Q510,310 528,296 Q542,285 552,300" fill="none" stroke="#2272a0" stroke-width="5" stroke-linecap="round"/>
+          <!-- Kopf -->
+          <ellipse cx="446" cy="296" rx="12" ry="7" fill="#14486a" transform="rotate(-12,446,296)"/>
+          <ellipse cx="446" cy="296" rx="8.5" ry="4.5" fill="#1a6490" transform="rotate(-12,446,296)"/>
+          <circle cx="441" cy="291" r="2.8" fill="#c9a227"/>
+          <circle cx="441" cy="291" r="1.3" fill="#080808"/>
+          <path d="M434,295 L428,291 M434,295 L428,299" stroke="#7a0808" stroke-width="1.8" stroke-linecap="round"/>
+          <!-- Rückenflossen -->
+          <line x1="466" y1="281" x2="463" y2="269" stroke="#14486a" stroke-width="2" stroke-linecap="round"/>
+          <line x1="484" y1="283" x2="481" y2="271" stroke="#14486a" stroke-width="2" stroke-linecap="round"/>
+          <line x1="504" y1="299" x2="501" y2="287" stroke="#14486a" stroke-width="2" stroke-linecap="round"/>
+          <line x1="522" y1="289" x2="519" y2="277" stroke="#14486a" stroke-width="2" stroke-linecap="round"/>
+          <!-- Schwanzflosse -->
+          <path d="M552,300 L562,290 L556,306 L566,310" fill="none" stroke="#14486a" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <animateTransform attributeName="transform" type="translate" values="0,0;0,-4;0,0" dur="3.5s" repeatCount="indefinite"/>
+        </g>
+        <text x="500" y="345" font-family="IM Fell English,serif" font-size="7.5" fill="#14405e" text-anchor="middle" font-style="italic" opacity=".65">Hic svnt dracones</text>
+
+        <!-- SEGELSCHIFF -->
+        <g class="ship-float">
+          <path d="M30,277 Q52,287 74,277 L70,265 L34,265 Z" fill="#5a3818" stroke="#281808" stroke-width="1.2"/>
+          <path d="M34,273 Q52,279 70,273" fill="none" stroke="#38200a" stroke-width=".8" opacity=".6"/>
+          <line x1="52" y1="265" x2="52" y2="232" stroke="#281808" stroke-width="2.2"/>
+          <line x1="39" y1="248" x2="65" y2="248" stroke="#281808" stroke-width="1.2"/>
+          <path d="M52,234 Q64,244 62,260 L52,260 Z" fill="#e0d0a8" stroke="#7a6a3a" stroke-width=".8" opacity=".92"/>
+          <path d="M52,234 Q40,244 42,260 L52,260 Z" fill="#d0c098" stroke="#7a6a3a" stroke-width=".8" opacity=".88"/>
+          <path d="M52,234 Q59,240 58,248 L52,248 Z" fill="#e8d8b0" stroke="#7a6a3a" stroke-width=".6" opacity=".8"/>
+          <path d="M52,234 Q45,240 46,248 L52,248 Z" fill="#dcc8a0" stroke="#7a6a3a" stroke-width=".6" opacity=".8"/>
+          <polygon points="52,232 62,236 52,240" fill="#c9a227" stroke="#8a6010" stroke-width=".5"/>
+          <path d="M24,280 Q36,274 48,280 Q60,286 72,280 Q82,274 82,280" fill="none" stroke="rgba(255,255,255,0.22)" stroke-width="1.5"/>
+        </g>
+
+        <!-- KOMPASSROSE – 8-strahlig -->
+        <g transform="translate(551,360)">
+          <circle cx="0" cy="0" r="32" fill="rgba(244,228,193,.92)" stroke="#c9a227" stroke-width="2"/>
+          <circle cx="0" cy="0" r="28" fill="none" stroke="#c9a227" stroke-width=".6" opacity=".4"/>
+          <circle cx="0" cy="0" r="11" fill="none" stroke="#c9a227" stroke-width=".5" opacity=".35"/>
+          <!-- Diagonale Spitzen (klein) -->
+          <polygon points="0,-22 -3,-11 0,-14 3,-11" fill="#5a4a2a" opacity=".65" transform="rotate(45)"/>
+          <polygon points="0,-22 -3,-11 0,-14 3,-11" fill="#5a4a2a" opacity=".65" transform="rotate(135)"/>
+          <polygon points="0,-22 -3,-11 0,-14 3,-11" fill="#5a4a2a" opacity=".65" transform="rotate(225)"/>
+          <polygon points="0,-22 -3,-11 0,-14 3,-11" fill="#5a4a2a" opacity=".65" transform="rotate(315)"/>
+          <!-- Kardinal N (Gold-Spitze) -->
+          <polygon points="0,-25 -5.5,-9 0,-14 5.5,-9" fill="#2c1810"/>
+          <polygon points="0,-25 -2,-17 0,-20 2,-17" fill="#c9a227"/>
+          <!-- Kardinal S -->
+          <polygon points="0,25 -4.5,9 0,14 4.5,9" fill="#6a5a4a"/>
+          <!-- Kardinal O -->
+          <polygon points="25,0 9,-4.5 14,0 9,4.5" fill="#6a5a4a"/>
+          <!-- Kardinal W -->
+          <polygon points="-25,0 -9,-4.5 -14,0 -9,4.5" fill="#6a5a4a"/>
+          <!-- Mitte -->
+          <circle cx="0" cy="0" r="5.5" fill="#c9a227" stroke="#8a6a10" stroke-width="1"/>
+          <circle cx="0" cy="0" r="2.8" fill="#2c1810"/>
+          <!-- Labels -->
+          <text x="0" y="-29" font-family="Cinzel,serif" font-size="9" fill="#2c1810" text-anchor="middle" font-weight="900">N</text>
+          <text x="0" y="37" font-family="Cinzel,serif" font-size="7.5" fill="#5c3d2e" text-anchor="middle">S</text>
+          <text x="33" y="4" font-family="Cinzel,serif" font-size="7.5" fill="#5c3d2e" text-anchor="middle">O</text>
+          <text x="-33" y="4" font-family="Cinzel,serif" font-size="7.5" fill="#5c3d2e" text-anchor="middle">W</text>
+        </g>
+
+        <!-- RAHMEN – dreifach mit Heraldik -->
+        <rect x="2" y="2" width="596" height="416" fill="none" stroke="#c9a227" stroke-width="2.8" rx="3" opacity=".88"/>
+        <rect x="6" y="6" width="588" height="408" fill="none" stroke="#c9a227" stroke-width=".9" rx="2" opacity=".45"/>
+        <rect x="10" y="10" width="580" height="400" fill="none" stroke="#8a6a10" stroke-width=".5" rx="1" opacity=".3"/>
+
+        <!-- Heraldische Eckschilde -->
+        <g transform="translate(13,13)">
+          <path d="M0,0 L20,0 L20,14 Q10,22 0,14 Z" fill="#2c1810" stroke="#c9a227" stroke-width="1.2"/>
+          <line x1="10" y1="1" x2="10" y2="14" stroke="#c9a227" stroke-width=".8" opacity=".6"/>
+          <line x1="1" y1="7" x2="19" y2="7" stroke="#c9a227" stroke-width=".8" opacity=".6"/>
+        </g>
+        <g transform="translate(567,13)">
+          <path d="M0,0 L20,0 L20,14 Q10,22 0,14 Z" fill="#2c1810" stroke="#c9a227" stroke-width="1.2"/>
+          <line x1="10" y1="1" x2="10" y2="14" stroke="#c9a227" stroke-width=".8" opacity=".6"/>
+          <line x1="1" y1="7" x2="19" y2="7" stroke="#c9a227" stroke-width=".8" opacity=".6"/>
+        </g>
+        <g transform="translate(13,393)">
+          <path d="M0,0 L20,0 L20,14 Q10,22 0,14 Z" fill="#2c1810" stroke="#c9a227" stroke-width="1.2"/>
+          <line x1="10" y1="1" x2="10" y2="14" stroke="#c9a227" stroke-width=".8" opacity=".6"/>
+          <line x1="1" y1="7" x2="19" y2="7" stroke="#c9a227" stroke-width=".8" opacity=".6"/>
+        </g>
+        <g transform="translate(567,393)">
+          <path d="M0,0 L20,0 L20,14 Q10,22 0,14 Z" fill="#2c1810" stroke="#c9a227" stroke-width="1.2"/>
+          <line x1="10" y1="1" x2="10" y2="14" stroke="#c9a227" stroke-width=".8" opacity=".6"/>
+          <line x1="1" y1="7" x2="19" y2="7" stroke="#c9a227" stroke-width=".8" opacity=".6"/>
+        </g>
+        <!-- Fleur-de-lis Mittelornamente -->
+        <text x="300" y="14" font-size="14" fill="#c9a227" text-anchor="middle" opacity=".85">⚜</text>
+        <text x="300" y="419" font-size="14" fill="#c9a227" text-anchor="middle" opacity=".85">⚜</text>
+        <text x="10" y="216" font-size="14" fill="#c9a227" text-anchor="middle" opacity=".85" transform="rotate(-90,10,216)">⚜</text>
+        <text x="592" y="216" font-size="14" fill="#c9a227" text-anchor="middle" opacity=".85" transform="rotate(90,592,216)">⚜</text>
+
+        <!-- MAßSTAB -->
+        <g transform="translate(30,364)">
+          <rect x="0" y="0" width="60" height="5" fill="none" stroke="#5c3d2e" stroke-width=".8"/>
+          <rect x="0" y="0" width="30" height="5" fill="#5c3d2e" opacity=".6"/>
+          <text x="0" y="14" font-family="IM Fell English,serif" font-size="7" fill="#5c3d2e">0</text>
+          <text x="26" y="14" font-family="IM Fell English,serif" font-size="7" fill="#5c3d2e">50</text>
+          <text x="52" y="14" font-family="IM Fell English,serif" font-size="7" fill="#5c3d2e">100 km</text>
+        </g>
+
+        <!-- LATEIN INSCHRIFT -->
+        <text x="300" y="409" font-family="IM Fell English,serif" font-size="8" fill="#5c3d2e" text-anchor="middle" font-style="italic" opacity=".78">Tabula Regni Kaiseris · Anno Domini MCCXLII</text>
+
+        <!-- VIGNETTE OVERLAY -->
+        <rect width="600" height="420" fill="url(#vignetteGrad)" rx="4" pointer-events="none"/>
+      </svg>
+    </div>
+
+    <div class="map-legend">
+      <div class="legend-item"><div class="legend-dot" style="background:#6a9a4a"></div>Dein Reich</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#8b1a1a"></div>Feinde</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#1a5c8b"></div>Verbündete</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#8a7a6a"></div>Neutral</div>
+    </div>
+
+    <div class="event-box" id="event-box">
+      <div class="event-title" id="event-title">Königliches Edikt</div>
+      <span id="event-text">Willkommen, mein Kaiser! Euer Reich erwartet weise Führung. Trefft Eure Entscheidungen und beendet die Runde.</span>
+    </div>
+
+  </div>
+
+  <!-- RECHTES PANEL: AKTIONEN -->
+  <div class="panel" id="right-panel">
+    <div class="panel-title">⚙ Königliche Befehle</div>
+    <div class="panel-content">
+
+      <div class="action-section">
+        <div class="action-section-title">🌾 Wirtschaft</div>
+        <div class="slider-row">
+          <div class="slider-label"><span>Steuersatz</span><span class="slider-val" id="tax-display">20%</span></div>
+          <input type="range" id="tax-slider" min="0" max="60" value="20" step="5" oninput="onSlider('tax',this.value)">
+          <div class="slider-hint" id="tax-hint">ca. 100 Gold / Runde</div>
+        </div>
+        <div class="slider-row">
+          <div class="slider-label"><span>Getreideverteilung</span><span class="slider-val" id="grain-display">150 / Rd.</span></div>
+          <input type="range" id="grain-slider" min="50" max="400" value="150" step="10" oninput="onSlider('grain',this.value)">
+          <div class="slider-hint" id="grain-hint">ca. 0,75 Getreide / Person → Zufriedenheit −7</div>
+        </div>
+        <div class="slider-row">
+          <div class="slider-label"><span>Anbaufläche</span><span class="slider-val" id="farm-display">40%</span></div>
+          <input type="range" id="farm-slider" min="10" max="80" value="40" step="5" oninput="onSlider('farm',this.value)">
+          <div class="slider-hint" id="farm-hint">ca. 96 Getreide / Runde (Frühling)</div>
+        </div>
+        <div class="slider-row">
+          <div class="slider-label"><span>Getreide verkaufen</span><span class="slider-val" id="grain-sell-display">0 / Rd.</span></div>
+          <input type="range" id="grain-sell-slider" min="0" max="300" value="0" step="10" oninput="onSlider('grainSell',this.value)">
+          <div style="font-size:.6rem; color:var(--stone); margin-top:2px" id="grain-price-hint">Marktpreis: 1,0 Gold / 10 Einh.</div>
+        </div>
+      </div>
+
+      <div class="action-section">
+        <div class="action-section-title">⚔️ Militär</div>
+        <div class="slider-row">
+          <div class="slider-label"><span>Rekrutierung</span><span class="slider-val" id="recruit-display">5 Mann</span></div>
+          <input type="range" id="recruit-slider" min="0" max="30" value="5" step="1" oninput="onSlider('recruit',this.value)">
+          <div class="slider-hint" id="recruit-hint">Kosten: 75 Gold einmalig · +10 Gold Unterhalt/Rd.</div>
+        </div>
+        <div class="slider-hint" style="margin-bottom:6px" id="army-hint">Unterhalt gesamt: 60 Gold/Rd. · Angriffsmacht: ~45 vs. Feind: 80</div>
+        <button class="btn btn-danger" onclick="attackEnemy()">⚔ Feind angreifen</button>
+      </div>
+
+      <div class="action-section">
+        <div class="action-section-title">🏗 Bauen (Gold)</div>
+        <button class="btn btn-primary" onclick="buildBuilding('market')" style="font-size:.62rem">🏪 Markt (200 Gold) +20% Steuern</button>
+        <button class="btn btn-primary" onclick="buildBuilding('granary')" style="font-size:.62rem">🏚 Speicher (150 Gold) +20% Ernte</button>
+        <button class="btn btn-primary" onclick="buildBuilding('militaryCamp')" style="font-size:.62rem">⚔️ Militärlager (180 Gold) -20% Kosten</button>
+        <button class="btn btn-primary" onclick="buildBuilding('church')" style="font-size:.62rem">⛪ Kathedrale (250 Gold) +5 Zufriedenheit</button>
+        <button class="btn btn-primary" onclick="buildBuilding('walls')" style="font-size:.62rem">🏰 Stadtmauern (300 Gold) Angriff +20%</button>
+        <button class="btn btn-primary" id="btn-housing" onclick="buildHousing()" style="font-size:.62rem">🏘 Wohnviertel (80 Gold) +150 Bev.-Grenze</button>
+      </div>
+
+      <div class="action-section">
+        <div class="action-section-title">🤖 KI-Narration (optional)</div>
+        <input type="password" class="api-input" id="api-key-input" placeholder="Anthropic API Key...">
+        <button class="btn btn-primary" onclick="saveApiKey()" style="font-size:.62rem; margin-bottom:4px">💾 Key speichern</button>
+        <div class="api-status" id="api-status">⭕ Statische Ereignistexte</div>
+      </div>
+
+      <button class="btn btn-primary" onclick="endTurn()" id="btn-endturn">⏳ Runde beenden →</button>
+
+      <div style="margin-top:12px; padding:8px; background:rgba(139,90,30,.06); border:1px solid rgba(139,90,30,.2); border-radius:3px;">
+        <div class="action-section-title" style="margin-bottom:6px">🏰 Gebäude</div>
+        <div id="buildings-list" style="font-size:.72rem; color:var(--ink-light); line-height:1.8">🏰 Burg<br>🌾 Felder (3)</div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<!-- TOOLTIP -->
+<div class="map-tooltip" id="map-tooltip">
+  <div class="tooltip-name" id="tt-name"></div>
+  <div class="tooltip-info" id="tt-info"></div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="event-modal">
+  <div class="modal">
+    <span class="modal-icon" id="modal-icon">⚠️</span>
+    <h2 id="modal-title">Ereignis</h2>
+    <p id="modal-text">...</p>
+    <button class="btn btn-primary" onclick="closeModal()" style="max-width:200px;margin:0 auto;display:block">Zur Kenntnis genommen</button>
+  </div>
+</div>
+
+<!-- GAME OVER -->
+<div class="game-over-screen" id="gameover-screen">
+  <div class="game-over-inner">
+    <h1 id="gameover-title">GAME OVER</h1>
+    <p id="gameover-sub">Das Schicksal Eures Reiches ist besiegelt.</p>
+    <div class="score" id="gameover-score">Jahr 0 · 0 Punkte</div>
+    <p id="gameover-reason" style="font-size:.85rem;font-style:italic;margin-bottom:24px;color:var(--parchment-shadow)"></p>
+    <button class="btn btn-primary" onclick="restartGame()" style="max-width:220px;margin:0 auto;display:block">⚔ Neues Spiel</button>
+  </div>
+</div>
+
+<!-- ===================== GAME LOGIC ===================== -->
+<script>
+// Referenz für alle Formeln: docs/FORMULAS.md
+// Referenz für API: docs/API_SPEC.md
+
+const SEASONS = ['🌱 Frühling','☀️ Sommer','🍂 Herbst','❄️ Winter'];
+const SEASON_MULT = [1.0, 1.3, 1.6, 0.3];
+// Getreide-Marktpreis je Saison (Gold pro 10 Einheiten)
+// Winter: Getreide knapp → höherer Preis; Herbst: Ernte-Überschuss → guter Preis
+const GRAIN_SELL_PRICES = [1.0, 1.2, 1.5, 2.0];
+const API_URL = 'https://api.anthropic.com/v1/messages';
+const MODEL = 'claude-sonnet-4-20250514';
+
+const EVENTS = [
+  { id:'drought', chance:.12, icon:'🌧', title:'Dürre', bad:true, contextHint:'severe drought destroyed crops', effect:s=>{s.grain=Math.max(0,s.grain-150);s.satisfaction-=8;}, fallback:'Wochenlanger Regen versumpft die Felder. Die Ernte fällt erschreckend mager aus.' },
+  { id:'bandits', chance:.10, icon:'🗡', title:'Räuber', bad:true, contextHint:'bandits raided trade routes', effect:s=>{const stolen=Math.min(Math.floor(s.gold*.15), 80);s.gold=Math.max(0,s.gold-stolen);s.satisfaction-=5;}, fallback:'Wegelagerer überfallen die Handelswagen. Gold geht verloren.' },
+  { id:'plague', chance:.08, icon:'🤒', title:'Seuche', bad:true, contextHint:'deadly plague killed many citizens', effect:s=>{s.population=Math.max(10,s.population-30);s.satisfaction-=15;}, fallback:'Eine mysteriöse Krankheit greift um sich. Viele sterben.' },
+  { id:'fire', chance:.07, icon:'🔥', title:'Großbrand', bad:true, contextHint:'fire burned grain stores', effect:s=>{s.grain=Math.max(0,s.grain-250);}, fallback:'Flammen zerstören die Getreidespeicher. Asche liegt über dem Reich.' },
+  { id:'good_harvest', chance:.14, icon:'✨', title:'Reiche Ernte', bad:false, contextHint:'exceptional harvest blessed the kingdom', effect:s=>{s.grain+=200;s.satisfaction+=7;}, fallback:'Die Götter sind wohlgesonnen! Die Ernte übertrifft alle Erwartungen.' },
+  { id:'caravan', chance:.11, icon:'🐫', title:'Handelskäravan', bad:false, contextHint:'wealthy trading caravan arrived', effect:s=>{s.gold+=s.hasMarket?180:120;s.satisfaction+=4;}, fallback:'Eine reiche Karawane bringt Waren und Gold aus dem fernen Osten.' },
+  { id:'festival', chance:.09, icon:'🎉', title:'Volksfest', bad:false, contextHint:'spontaneous festival lifted spirits', effect:s=>{s.satisfaction=Math.min(100,s.satisfaction+15);}, fallback:'Ein spontanes Volksfest erfüllt das ganze Reich mit Musik und Freude.' },
+  { id:'ore', chance:.07, icon:'⛏', title:'Erzfund', bad:false, contextHint:'miners found rich ore veins', effect:s=>{s.gold+=100;}, fallback:'Bergleute entdecken eine reiche Erzader in den Eisengebirgen.' },
+  { id:'immigrants', chance:.06, icon:'🚶', title:'Neue Siedler', bad:false, contextHint:'settlers arrived expanding population', effect:s=>{s.population+=25;s.satisfaction+=3;}, fallback:'Flüchtlinge aus fernen Landen suchen Schutz unter Eurem Banner.' },
+  { id:'rebellion', chance:.06, condition:s=>s.satisfaction<35, icon:'⚔️', title:'Aufstand', bad:true, contextHint:'peasant rebellion broke out', effect:s=>{s.population=Math.max(10,s.population-20);s.gold=Math.max(0,s.gold-Math.min(80,Math.floor(s.gold*.2)));s.satisfaction-=20;}, fallback:'Das unterdrückte Volk erhebt sich mit Fackeln und Sensen!' },
+];
+
+const BUILDINGS_DEF = {
+  market:       {cost:200, flag:'hasMarket',       name:'🏪 Marktplatz'},
+  granary:      {cost:150, flag:'hasGranary',       name:'🏚 Getreidespeicher'},
+  militaryCamp: {cost:180, flag:'hasMilitaryCamp',  name:'⚔️ Militärlager'},
+  church:       {cost:250, flag:'hasChurch',        name:'⛪ Kathedrale'},
+  walls:        {cost:300, flag:'hasWalls',         name:'🏰 Stadtmauern'},
+};
+
+const REGION_DATA = {
+  'region-nord':      {name:'Nordmark',      info:'🌾 Getreideanbau · Dein Reich'},
+  'region-west':      {name:'Westwald',      info:'🌲 Holzlieferant · Dein Reich'},
+  'region-center':    {name:'Herzland',      info:'👑 Kerngebiet · Dein Reich'},
+  'region-farm':      {name:'Ährental',      info:'🌾 Fruchtbares Ackerland · Dein Reich'},
+  'region-mountains': {name:'Eisengebirge',  info:'⛏ Erzabbau · Neutral (Eroberbar)'},
+  'region-enemy1':    {name:'Schattenlande', info:'💀 Feindliches Territorium'},
+  'region-enemy2':    {name:'Dunkelhain',    info:'💀 Feindliches Territorium'},
+  'region-ally':      {name:'Sonnengefilde', info:'🤝 Verbündetes Königreich'},
+};
+
+// STATE
+let state = createState();
+
+function createState() {
+  return {
+    round:1, maxRounds:20, gameOver:false,
+    gold:500, grain:800, population:200, soldiers:30, land:3, satisfaction:65,
+    enemyStrength:80,
+    hasMarket:false, hasGranary:false, hasMilitaryCamp:false, hasChurch:false, hasWalls:false,
+    popCap:300, housingLevel:0,
+    lowSatStreak:0,
+    decisions:{taxRate:20, grainDist:150, farming:40, recruit:5, grainSell:0},
+    buildings:['🏰 Burg','🌾 Felder (3)'],
+    deltas:{},
+  };
+}
+
+// API
+function getApiKey() { return localStorage.getItem('kaiser_api_key')||''; }
+function saveApiKey() {
+  const k = document.getElementById('api-key-input').value.trim();
+  localStorage.setItem('kaiser_api_key', k);
+  document.getElementById('api-status').textContent = k ? '✅ KI-Narration aktiv' : '⭕ Statische Texte';
+}
+
+async function callClaude(prompt, maxTokens=130) {
+  const key = getApiKey();
+  if (!key) return null;
+  try {
+    const r = await fetch(API_URL, {
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({model:MODEL, max_tokens:maxTokens, messages:[{role:'user',content:prompt}]})
+    });
+    if (!r.ok) return null;
+    const d = await r.json();
+    return d.content?.[0]?.text?.trim()||null;
+  } catch { return null; }
+}
+
+// FORMULAS
+function calcTax(s) {
+  const base = Math.floor(s.population*(s.decisions.taxRate/100)*2.5);
+  return base + (s.hasMarket ? Math.floor(base*.2) : 0);
+}
+function calcHarvest(s) {
+  const mult = SEASON_MULT[(s.round-1)%4];
+  const gran = s.hasGranary ? 1.2 : 1.0;
+  return Math.floor(s.land * s.decisions.farming * 0.8 * mult * gran);
+}
+function calcSatDelta(s) {
+  let d=0;
+  // Nutze tatsächlich verteilte Menge falls vorhanden, sonst Slider-Wert
+  const distUsed = (s._actualDist !== undefined) ? s._actualDist : s.decisions.grainDist;
+  const gpp = distUsed / Math.max(1, s.population);
+  if (gpp<.5) d-=18; else if(gpp<.8) d-=7; else if(gpp<1.2) d+=1; else if(gpp<1.5) d+=3; else d+=6;
+  if (s.decisions.taxRate>50) d-=12;
+  else if (s.decisions.taxRate>40) d-=Math.floor((s.decisions.taxRate-40)*.6);
+  else if (s.decisions.taxRate<10) d+=4;
+  if (s.hasChurch) d+=5;
+  return Math.max(-25, Math.min(20, d));
+}
+function calcPopChange(s) {
+  const cap = s.popCap || 300;
+  if (s.population >= cap) return 0; // Keine weiteren Zuzügler ohne Wohnraum
+  const g = Math.floor(s.population*.03*(s.satisfaction/80));
+  const d = s.satisfaction<30 ? Math.floor(s.population*.05) : 0;
+  const change = g - d;
+  // Nicht über die Grenze wachsen
+  return Math.min(change, cap - s.population);
+}
+function calcScore(s) {
+  return Math.floor(s.population*.5 + s.gold*.2 + s.satisfaction*15 + s.land*60 + s.soldiers*2);
+}
+function scoreTitle(sc) {
+  if(sc>=2000) return 'Legendärer Herrscher';
+  if(sc>=1500) return 'Großer Kaiser';
+  if(sc>=1000) return 'Guter König';
+  if(sc>=500)  return 'Durchschnittlicher Herrscher';
+  return 'Schlechter Kaiser';
+}
+
+// RUNDE
+async function endTurn() {
+  if (state.gameOver) return;
+  document.getElementById('btn-endturn').disabled = true;
+
+  try {
+    const prev = {gold:state.gold, grain:state.grain, pop:state.population, sol:state.soldiers, land:state.land};
+
+    // Einnahmen & Ausgaben – alle Flows tracken
+    const taxIncome = calcTax(state);
+    state.gold += taxIncome;
+
+    const harvest = calcHarvest(state);
+    state.grain += harvest;
+
+    // Tatsächlich verteilte Menge (nicht mehr als vorhanden)
+    const actualDist = Math.min(state.decisions.grainDist, state.grain);
+    state.grain = Math.max(0, state.grain - state.decisions.grainDist);
+
+    // Getreideverkauf (saisonale Preise)
+    const grainPrice = GRAIN_SELL_PRICES[(state.round-1)%4];
+    const actualSell = Math.min(state.decisions.grainSell||0, state.grain);
+    state.grain = Math.max(0, state.grain - actualSell);
+    const grainSellIncome = Math.floor(actualSell * grainPrice / 10);
+    state.gold += grainSellIncome;
+
+    const campDisc = state.hasMilitaryCamp ? .8 : 1;
+    const costPerSoldier = Math.floor(15 * campDisc);
+    const affordable = Math.min(state.decisions.recruit, Math.floor(state.gold / costPerSoldier));
+    let actualRecCost = affordable * costPerSoldier;
+    state.gold -= actualRecCost;
+    state.soldiers += affordable;
+    const upkeep = Math.floor(state.soldiers * campDisc);
+    state.gold = Math.max(0, state.gold - upkeep);
+
+    // Zufriedenheit mit TATSÄCHLICHER Verteilung berechnen (nicht Slider-Wunsch)
+    state._actualDist = actualDist;
+    state.satisfaction = Math.max(0, Math.min(100, state.satisfaction + calcSatDelta(state)));
+    delete state._actualDist;
+    state.population = Math.max(10, state.population + calcPopChange(state));
+
+    // G&V vorläufig speichern (vor Events)
+    const goldBeforeEvent  = state.gold;
+    const grainBeforeEvent = state.grain;
+    state.lastGV = {
+      tax: taxIncome, grainSell: grainSellIncome,
+      recruit: actualRecCost, upkeep,
+      harvest, dist: actualDist, sold: actualSell,
+      netGold: 0, netGrain: 0,
+      eventName: null, eventGold: 0, eventGrain: 0,
+    };
+    state.enemyStrength += 3 + Math.floor(Math.random()*6);
+
+    // Event
+    const ev = rollEvent(state);
+    let evTitle='Ruhige Runde', evText='Die Runde verlief ohne besondere Vorkommnisse.', evIcon='🌿', evBad=false;
+    if (ev) {
+      ev.effect(state);
+      evTitle = ev.title; evIcon = ev.icon; evBad = ev.bad;
+      evText = await callClaude(buildEventPrompt(ev, state)) || ev.fallback;
+      showModal(evIcon, evTitle, evText, evBad);
+      // Ereignis-Effekt in G&V eintragen
+      state.lastGV.eventName = ev.title;
+      state.lastGV.eventGold  = state.gold  - goldBeforeEvent;
+      state.lastGV.eventGrain = state.grain - grainBeforeEvent;
+    }
+
+    state.deltas = {gold:state.gold-prev.gold, grain:state.grain-prev.grain, pop:state.population-prev.pop, sol:state.soldiers-prev.sol, land:state.land-prev.land};
+    // Tatsächlichen Saldo nach allem (inkl. Events) eintragen
+    state.lastGV.netGold  = state.deltas.gold;
+    state.lastGV.netGrain = state.deltas.grain;
+    state.round++;
+
+    // End check
+    const end = checkEnd();
+    updateUI(evTitle, evText);
+    if (end) { triggerGameOver(end); return; }
+
+    saveState();
+  } catch(e) {
+    console.error('endTurn Fehler:', e);
+  } finally {
+    document.getElementById('btn-endturn').disabled = false;
+  }
+}
+
+function rollEvent(s) {
+  const elig = EVENTS.filter(e => !e.condition || e.condition(s));
+  let cum=0, roll=Math.random();
+  for (const e of elig) { cum+=e.chance; if(roll<cum) return e; }
+  return null;
+}
+
+function buildEventPrompt(ev, s) {
+  const sea = ['Frühling','Sommer','Herbst','Winter'][(s.round-1)%4];
+  return `Du bist Hofchronist. Schreibe 2 dramatische Sätze auf Deutsch (max 55 Wörter).
+Stand: Jahr ${s.round}/20, ${sea}, Volk:${s.population}, Gold:${s.gold}, Getreide:${s.grain}, Zufriedenheit:${s.satisfaction}%
+Ereignis: ${ev.title} (${ev.contextHint})
+Mittelalterlicher Stil, keine Markdown.`;
+}
+
+function checkEnd() {
+  if (state.population<=0) return {vic:false, msg:'Alle Einwohner sind gestorben.', title:'☠ Das Reich ist gefallen'};
+  if (state.grain<=0 && state.satisfaction<15) return {vic:false, msg:'Das Volk verhungert.', title:'💀 Hungersnot'};
+  if (state.satisfaction<10) {
+    state.lowSatStreak = (state.lowSatStreak||0)+1;
+    if(state.lowSatStreak>=3) return {vic:false, msg:'Das Volk hat sich erhoben.', title:'⚔️ Revolte'};
+  } else { state.lowSatStreak=0; }
+  if (state.round>state.maxRounds) {
+    const sc=calcScore(state);
+    return {vic:true, title:`👑 ${scoreTitle(sc)}`, msg:`Punktzahl: ${sc}`, score:sc};
+  }
+  return null;
+}
+
+function triggerGameOver(end) {
+  state.gameOver=true;
+  document.getElementById('gameover-title').textContent = end.title;
+  document.getElementById('gameover-title').style.color = end.vic ? 'var(--gold-bright)' : '#f08080';
+  document.getElementById('gameover-sub').textContent = end.vic ? '20 Jahre weise Herrschaft! Euer Name ist unsterblich.' : 'Das Schicksal hat Euch ereilt.';
+  document.getElementById('gameover-score').textContent = `Jahr ${state.round} · ${end.score||calcScore(state)} Punkte`;
+  document.getElementById('gameover-reason').textContent = end.msg;
+  document.getElementById('gameover-screen').classList.add('active');
+}
+
+function attackEnemy() {
+  if(state.gameOver) return;
+  if(state.soldiers<20) { showModal('⚠️','Zu wenig Truppen','Ihr braucht mindestens 20 Soldaten für einen Angriff.',true); return; }
+  const wallBonus = state.hasWalls ? 1.2 : 1.0;
+  const atk = Math.floor(state.soldiers * wallBonus) + Math.floor(Math.random()*30);
+  if(atk > state.enemyStrength*.8) {
+    // Sieg – skalierte Beute
+    const plunder   = 80 + Math.floor(state.enemyStrength * 0.6) + Math.floor(Math.random()*60);
+    const grainLoot = 80 + Math.floor(Math.random()*80);
+    const settlers  = 10 + Math.floor(Math.random()*15);
+    const loss      = Math.floor(state.soldiers * .12);
+    state.land++;
+    state.enemyStrength = Math.max(30, state.enemyStrength - 40);
+    state.soldiers  = Math.max(0, state.soldiers - loss);
+    state.gold     += plunder;
+    state.grain    += grainLoot;
+    state.population = Math.min(state.popCap||300, state.population + settlers);
+    state.satisfaction = Math.min(100, state.satisfaction + 10);
+    state.buildings.push('🏴 Gebiet ' + state.land);
+    showModal('⚔️','Sieg!',
+      'Triumph! Gebiet ' + state.land + ' ist Euer.\n' +
+      '+' + plunder + ' Gold Beute  |  +' + grainLoot + ' Getreide  |  +' + settlers + ' Siedler\n' +
+      loss + ' Soldaten gefallen. Zufriedenheit +10.',false);
+  } else {
+    const loss = Math.floor(state.soldiers * .30);
+    state.soldiers    = Math.max(0, state.soldiers - loss);
+    state.satisfaction = Math.max(0, state.satisfaction - 12);
+    showModal('💀','Niederlage!','Die Feinde waren zu stark. ' + loss + ' Soldaten gefallen. Zufriedenheit −12.',true);
+  }
+  saveState();
+  updateUI();
+}
+
+function buildBuilding(id) {
+  const b=BUILDINGS_DEF[id];
+  if(!b) return;
+  if(state[b.flag]) { showModal('ℹ️','Bereits vorhanden','Dieses Gebäude existiert bereits.',false); return; }
+  if(state.gold<b.cost) { showModal('💸','Zu wenig Gold',`Benötigt: ${b.cost} Gold. Verfügbar: ${state.gold}.`,true); return; }
+  state.gold-=b.cost; state[b.flag]=true; state.buildings.push(b.name);
+  saveState();
+  showModal('🏗',`${b.name} erbaut!`,`Das Gebäude steht! Genießt die Früchte Eurer Investition.`,false);
+  updateUI();
+}
+
+// UI
+function updateUI(evTitle, evText) {
+  const s=state;
+  document.getElementById('round-display').textContent = Math.min(s.round, s.maxRounds);
+  document.getElementById('season-display').textContent = SEASONS[(s.round-1)%4];
+  document.getElementById('gold-val').textContent = s.gold.toLocaleString('de-DE');
+  document.getElementById('grain-val').textContent = s.grain.toLocaleString('de-DE');
+  document.getElementById('pop-val').textContent = s.population.toLocaleString('de-DE');
+  const capEl = document.getElementById('pop-cap-label');
+  if(capEl) {
+    const cap = s.popCap||300;
+    const atCap = s.population >= cap;
+    capEl.textContent = `Grenze: ${cap}${atCap?' ⚠️ voll':''}`;
+    capEl.style.color = atCap ? 'var(--red-bright)' : 'var(--stone)';
+  }
+  document.getElementById('soldiers-val').textContent = s.soldiers;
+  document.getElementById('land-val').textContent = s.land;
+
+  const sat=s.satisfaction;
+  document.getElementById('sat-bar').style.width = sat+'%';
+  document.getElementById('sat-bar').style.backgroundPosition = ((100-sat)*.5)+'% 0';
+  document.getElementById('sat-val').textContent = sat+'%';
+
+  const d=s.deltas;
+  if(d.gold!==undefined) {
+    setDelta('gold-delta',d.gold); setDelta('grain-delta',d.grain);
+    setDelta('pop-delta',d.pop); setDelta('soldiers-delta',d.sol); setDelta('land-delta',d.land);
+  }
+
+  if(evTitle) {
+    document.getElementById('event-title').textContent = evTitle;
+    document.getElementById('event-text').textContent = evText||'';
+    const box=document.getElementById('event-box');
+    box.style.animation='none'; box.offsetHeight; box.style.animation='fadeIn .4s ease';
+  }
+
+  document.getElementById('buildings-list').innerHTML = s.buildings.join('<br>');
+  document.getElementById('advisor-text').textContent = getAdvisor(s);
+
+  // Getreide-Marktpreis aktualisieren
+  const priceHint = document.getElementById('grain-price-hint');
+  if (priceHint) {
+    const priceLabels = ['1,0','1,2','1,5','2,0'];
+    const seasonLabels = ['Frühling','Sommer','Herbst','Winter'];
+    const si = (s.round-1)%4;
+    priceHint.textContent = `Marktpreis (${seasonLabels[si]}): ${priceLabels[si]} Gold / 10 Einh.`;
+  }
+
+  // G&V – zeige Istwerte (nach Runde) oder Vorschau (vor erster Runde)
+  {
+    const sign = v => (v >= 0 ? '+' : '') + v;
+    const campDisc2 = s.hasMilitaryCamp ? .8 : 1;
+    const grainPrice2 = GRAIN_SELL_PRICES[(s.round-1)%4];
+    let gv;
+    if (s.lastGV) {
+      gv = s.lastGV;
+    } else {
+      // Vorschau-Werte auf Basis aktueller Einstellungen
+      const tax2 = calcTax(s);
+      const grainSell2 = Math.floor((s.decisions.grainSell||0) * grainPrice2 / 10);
+      const recCost2 = Math.floor((s.decisions.recruit||0) * 15 * campDisc2);
+      const upkeep2 = Math.floor(s.soldiers * campDisc2);
+      const harv2 = calcHarvest(s);
+      const sellAmt2 = s.decisions.grainSell||0;
+      const dist2 = Math.min(s.decisions.grainDist, s.grain + harv2);
+      gv = {
+        tax: tax2, grainSell: grainSell2,
+        recruit: recCost2, upkeep: upkeep2,
+        harvest: harv2, dist: dist2, sold: sellAmt2,
+        netGold: tax2 + grainSell2 - recCost2 - upkeep2,
+        netGrain: harv2 - dist2 - sellAmt2,
+      };
+    }
+    document.getElementById('gv-tax').textContent        = '+' + gv.tax + ' Gold';
+    document.getElementById('gv-grain-sell').textContent  = '+' + gv.grainSell + ' Gold';
+    document.getElementById('gv-recruit').textContent     = gv.recruit > 0 ? '-' + gv.recruit + ' Gold' : '0 Gold';
+    document.getElementById('gv-upkeep').textContent      = '-' + gv.upkeep + ' Gold';
+    // Ereignis-Zeile (nur nach echten Runden)
+    const evRow = document.getElementById('gv-event-row');
+    if (s.lastGV && s.lastGV.eventName) {
+      evRow.style.display = 'flex';
+      document.getElementById('gv-event-label').textContent = '⚡ ' + s.lastGV.eventName;
+      const eg = s.lastGV.eventGold;
+      document.getElementById('gv-event-val').textContent = sign(eg) + ' Gold';
+      document.getElementById('gv-event-val').style.color = eg >= 0 ? 'var(--green)' : 'var(--red-bright)';
+    } else {
+      evRow.style.display = 'none';
+    }
+    // Gold-Saldo
+    const netEl    = document.getElementById('gv-total');
+    const netRowEl = document.getElementById('gv-total-row');
+    netEl.textContent = sign(gv.netGold) + ' Gold';
+    netRowEl.className = 'gv-row total ' + (gv.netGold >= 0 ? 'pos' : 'neg');
+    // Getreide
+    const netGrain = s.lastGV ? gv.netGrain : (gv.harvest - gv.dist);
+    const grainTotalEl  = document.getElementById('gv-grain-total');
+    const grainTotalRow = document.getElementById('gv-grain-total-row');
+    grainTotalEl.textContent = sign(netGrain) + ' Getreide';
+    grainTotalRow.className  = 'gv-row ' + (netGrain >= 0 ? 'income' : 'expense');
+    document.getElementById('gv-harvest').textContent = '+' + gv.harvest + ' Getreide';
+    document.getElementById('gv-dist').textContent    = '-' + gv.dist    + ' Getreide';
+    // Getreide verkauft
+    const soldEl = document.getElementById('gv-sold');
+    if(soldEl) soldEl.textContent = gv.sold > 0 ? '-' + gv.sold + ' Getreide' : '0 Getreide';
+    // Ereignis Getreide-Effekt
+    const evGrainRow = document.getElementById('gv-event-grain-row');
+    if(evGrainRow) {
+      if(s.lastGV && s.lastGV.eventGrain && s.lastGV.eventGrain !== 0) {
+        evGrainRow.style.display = 'flex';
+        document.getElementById('gv-event-grain-label').textContent = '↳ ' + (s.lastGV.eventName||'Ereignis');
+        const eg2 = s.lastGV.eventGrain;
+        document.getElementById('gv-event-grain-val').textContent = sign(eg2) + ' Getreide';
+        document.getElementById('gv-event-grain-val').style.color = eg2 >= 0 ? 'var(--green)' : 'var(--red-bright)';
+      } else {
+        evGrainRow.style.display = 'none';
+      }
+    }
+    // Titel
+    const titleEl = document.querySelector('#gv-box .gv-title');
+    if (titleEl) titleEl.textContent = s.lastGV ? '📒 Letzte Runde – Bilanz' : '📋 Vorschau nächste Runde';
+  }
+  // Militär-Info
+  const campDisc = s.hasMilitaryCamp ? .8 : 1;
+  const wallBonus = s.hasWalls ? 1.2 : 1.0;
+  const upkeepTotal = Math.floor(s.soldiers * 1 * campDisc);
+  const atkPower = Math.floor(s.soldiers * wallBonus);
+  document.getElementById('gv-enemy').textContent = s.enemyStrength + ' (Schwelle: '+Math.floor(s.enemyStrength*.8)+')';
+  document.getElementById('gv-atk').textContent = atkPower + (s.hasWalls?' (Mauern +20%)':'') + ' → '+(atkPower>s.enemyStrength*.8?'✅ Sieg wahrsch.':'⚠️ Riskant');
+  // Slider-Hints aktualisieren
+  updateSliderHints();
+
+  // Gebäude-Buttons sperren wenn bereits gebaut
+  const bflags={market:'hasMarket',granary:'hasGranary',militaryCamp:'hasMilitaryCamp',church:'hasChurch',walls:'hasWalls'};
+  document.querySelectorAll('[onclick^="buildBuilding"]').forEach(btn=>{
+    const m=btn.getAttribute('onclick').match(/buildBuilding\('(\w+)'\)/);
+    if(m&&bflags[m[1]]) btn.disabled=!!s[bflags[m[1]]];
+  });
+  // Wohnviertel-Button aktualisieren
+  const hBtn = document.getElementById('btn-housing');
+  if(hBtn) {
+    const lvl = s.housingLevel||0;
+    const cost = 80 + lvl*30;
+    const canAfford = s.gold >= cost;
+    hBtn.textContent = '🏘 Wohnviertel Lvl '+(lvl+1)+' ('+cost+' Gold) +150 Bev.-Grenze'+(canAfford?' ✓':' – zu wenig Gold');
+    hBtn.style.opacity = canAfford ? '1' : '0.5';
+  }
+
+  // Karte: eroberte Gebiete einfärben
+  updateMapRegions(s);
+
+  if(s.satisfaction<25||s.grain<100) {
+    document.getElementById('left-panel').classList.add('warning-flash');
+    setTimeout(()=>document.getElementById('left-panel').classList.remove('warning-flash'),1600);
+  }
+}
+
+function setDelta(id,val) {
+  const el=document.getElementById(id); if(!el) return;
+  el.textContent=(val>=0?'+':'')+val;
+  el.className='res-delta '+(val>0?'pos':val<0?'neg':'');
+}
+
+const ADVISOR_RULES=[
+  {c:s=>s.satisfaction>85, t:'Das Volk liebt Euch. Herrlichkeit liegt über dem Reich.'},
+  {c:s=>s.satisfaction<25, t:'⚠️ Das Volk murrt! Eine Revolte droht!'},
+  {c:s=>s.grain<200, t:'Die Kornkammern leeren sich bedrohlich schnell!'},
+  {c:s=>s.gold<80, t:'Die Staatskasse ist fast leer. Steuern erhöhen!'},
+  {c:s=>s.enemyStrength>160, t:'Der Feind rüstet massiv auf. Seid gewarnt!'},
+  {c:s=>s.round>16, t:`Nur noch ${21-s.round} Jahre bis Ihr in die Annalen eingeht.`},
+  {c:s=>s.soldiers<15, t:'Unsere Verteidigung ist kritisch schwach!'},
+  {c:s=>!s.hasMarket&&s.gold>300, t:'Ein Markt würde Eure Einnahmen erheblich steigern.'},
+  {c:s=>(s.round-1)%4===2, t:'Herbst – maximiert jetzt die Ernte!'},
+  {c:s=>(s.round-1)%4===3, t:'Winter – kaum Ernte. Spart Getreide!'},
+];
+function getAdvisor(s) {
+  const r=ADVISOR_RULES.filter(x=>x.c(s));
+  return r.length ? r[Math.floor(Math.random()*r.length)].t : 'Das Reich gedeiht unter Eurer Herrschaft.';
+}
+
+// SAVE / LOAD
+function saveState() {
+  try { localStorage.setItem('kaiser_save', JSON.stringify(state)); } catch(e) {}
+}
+function loadSavedState() {
+  try { const s=localStorage.getItem('kaiser_save'); return s?JSON.parse(s):null; } catch(e) { return null; }
+}
+
+// MAP KONQUEST
+function buildHousing() {
+  const level = state.housingLevel || 0;
+  const cost = 80 + level * 30;
+  if(state.gold < cost) {
+    showModal('💸','Zu wenig Gold',`Wohnviertel Lvl ${level+1} kostet ${cost} Gold. Ihr habt ${state.gold} Gold.`,true);
+    return;
+  }
+  state.gold -= cost;
+  state.housingLevel = level + 1;
+  state.popCap = 300 + state.housingLevel * 150;
+  state.buildings.push('🏘 Wohnviertel ' + state.housingLevel);
+  saveState();
+  updateUI();
+  showModal('🏘','Wohnviertel erbaut!','Neue Häuser entstehen! Bevölkerungsgrenze erhöht auf ' + state.popCap + ' Einwohner.',false);
+}
+
+function updateMapRegions(s) {
+  [{land:4,id:'region-mountains'},{land:5,id:'region-enemy1'},{land:6,id:'region-enemy2'}].forEach(c=>{
+    if(s.land>=c.land) {
+      const el=document.getElementById(c.id); if(!el) return;
+      el.style.fill='url(#centerGrad)'; el.style.stroke='#3a6a18';
+      el.style.strokeWidth='1.2'; el.style.opacity='1';
+    }
+  });
+  // Markt auf Karte
+  const mktG = document.getElementById('map-market');
+  const mktL = document.getElementById('map-market-label');
+  if(mktG) mktG.style.opacity = s.hasMarket ? '1' : '0';
+  if(mktL) mktL.style.opacity = s.hasMarket ? '1' : '0';
+  // Wohnviertel auf Karte
+  const hG = document.getElementById('map-housing');
+  const hL = document.getElementById('map-housing-label');
+  if(hG) hG.style.opacity = (s.housingLevel||0)>=1 ? '1' : '0';
+  if(hL) hL.style.opacity = (s.housingLevel||0)>=1 ? '1' : '0';
+}
+
+// MODAL
+function showModal(icon,title,text,bad) {
+  document.getElementById('modal-icon').textContent=icon;
+  const t=document.getElementById('modal-title'); t.textContent=title; t.className=bad?'':'good';
+  document.getElementById('modal-text').textContent=text;
+  document.getElementById('event-modal').classList.add('active');
+}
+function closeModal() { document.getElementById('event-modal').classList.remove('active'); }
+
+// SLIDER HANDLER – zentral, via oninput-Attribut aufgerufen
+function onSlider(id, rawVal) {
+  const val = parseInt(rawVal);
+  const displayMap = {
+    tax: ['tax-display', v => v+'%'],
+    grain: ['grain-display', v => v+' / Rd.'],
+    farm: ['farm-display', v => v+'%'],
+    recruit: ['recruit-display', v => v+' Mann'],
+    grainSell: ['grain-sell-display', v => v+' / Rd.'],
+  };
+  const stateKey = {
+    tax:'taxRate', grain:'grainDist', farm:'farming',
+    recruit:'recruit', grainSell:'grainSell'
+  };
+  const [dispId, fmt] = displayMap[id];
+  const dispEl = document.getElementById(dispId);
+  if(dispEl) dispEl.textContent = fmt(val);
+  state.decisions[stateKey[id]] = val;
+  updateSliderHints();
+}
+
+function updateSliderHints() {
+  const s = state;
+  const campDisc = s.hasMilitaryCamp ? .8 : 1;
+  const si = (s.round-1)%4;
+  const seasonMult = [1.0,1.3,1.6,0.3][si];
+  const seasonName = ['Frühling','Sommer','Herbst','Winter'][si];
+
+  // Steuern-Hint
+  const taxGold = calcTax(s);
+  const taxEl = document.getElementById('tax-hint');
+  if(taxEl) taxEl.textContent = `ca. ${taxGold} Gold / Runde`;
+
+  // Getreideverteilung-Hint
+  const gpp = (s.decisions.grainDist / Math.max(1,s.population)).toFixed(2);
+  let satEffect = '';
+  if(gpp<.5) satEffect='Zufriedenheit −18/Rd.';
+  else if(gpp<.8) satEffect='Zufriedenheit −7/Rd.';
+  else if(gpp<1.2) satEffect='Zufriedenheit +1/Rd.';
+  else if(gpp<1.5) satEffect='Zufriedenheit +3/Rd.';
+  else satEffect='Zufriedenheit +6/Rd.';
+  const grainHintEl = document.getElementById('grain-hint');
+  if(grainHintEl) grainHintEl.textContent = `${gpp} Getreide/Person → ${satEffect}`;
+
+  // Anbaufläche-Hint
+  const granary = s.hasGranary ? 1.2 : 1.0;
+  const expectedHarvest = Math.floor(s.land * s.decisions.farming * 0.8 * seasonMult * granary);
+  const farmEl = document.getElementById('farm-hint');
+  if(farmEl) farmEl.textContent = `ca. ${expectedHarvest} Getreide / Runde (${seasonName})`;
+
+  // Rekrutierungs-Hint
+  const recCostPer = Math.floor(15 * campDisc);
+  const totalRecCost = s.decisions.recruit * recCostPer;
+  const extraUpkeep = Math.floor(s.decisions.recruit * 1 * campDisc);
+  const recruitEl = document.getElementById('recruit-hint');
+  if(recruitEl) recruitEl.textContent = `Kosten: ${totalRecCost} Gold einmalig · +${extraUpkeep} Gold Unterhalt/Rd.`;
+
+  // Armee-Gesamt-Hint
+  const totalUpkeep = Math.floor(s.soldiers * 1 * campDisc);
+  const wallBonus = s.hasWalls ? 1.2 : 1.0;
+  const atkPow = Math.floor(s.soldiers * wallBonus);
+  const threshold = Math.floor(s.enemyStrength * .8);
+  const armyEl = document.getElementById('army-hint');
+  if(armyEl) armyEl.textContent = `Unterhalt: ${totalUpkeep} Gold/Rd. · Angriffsmacht: ~${atkPow} vs. Feind: ${threshold}`;
+}
+
+// MAP TOOLTIPS
+document.querySelectorAll('.region').forEach(el=>{
+  const data=REGION_DATA[el.id]; if(!data) return;
+  el.addEventListener('mouseenter',()=>{
+    const tt=document.getElementById('map-tooltip');
+    tt.style.display='block';
+    document.getElementById('tt-name').textContent=data.name;
+    document.getElementById('tt-info').textContent=data.info;
+  });
+  el.addEventListener('mousemove',e=>{
+    const tt=document.getElementById('map-tooltip');
+    tt.style.left=(e.clientX+14)+'px'; tt.style.top=(e.clientY-10)+'px';
+  });
+  el.addEventListener('mouseleave',()=>{ document.getElementById('map-tooltip').style.display='none'; });
+  el.addEventListener('click',()=>showModal('🗺',data.name,data.info,data.name.includes('Schatten')||data.name.includes('Dunkel')));
+});
+
+// API KEY INIT
+const savedKey=getApiKey();
+if(savedKey) {
+  document.getElementById('api-key-input').value=savedKey;
+  document.getElementById('api-status').textContent='✅ KI-Narration aktiv';
+}
+
+// Slider-DOM mit state.decisions synchronisieren
+function syncSliders() {
+  const d = state.decisions;
+  const set = (id, val, display) => {
+    const el = document.getElementById(id);
+    if(el) el.value = val;
+    const disp = document.getElementById(id.replace('-slider','-display'));
+    if(disp) disp.textContent = display;
+  };
+  set('tax-slider',     d.taxRate,   d.taxRate+'%');
+  set('grain-slider',   d.grainDist, d.grainDist+' / Rd.');
+  set('farm-slider',    d.farming,   d.farming+'%');
+  set('recruit-slider', d.recruit,   d.recruit+' Mann');
+  set('grain-sell-slider', d.grainSell||0, (d.grainSell||0)+' / Rd.');
+  updateSliderHints();
+}
+
+// RESTART
+function restartGame() {
+  localStorage.removeItem('kaiser_save');
+  state=createState();
+  document.getElementById('gameover-screen').classList.remove('active');
+  document.getElementById('event-title').textContent='Neues Spiel';
+  document.getElementById('event-text').textContent='Ein neues Zeitalter beginnt. Führt Euer Reich zu Ruhm und Größe!';
+  syncSliders();
+  updateUI();
+}
+
+// INIT
+const saved=loadSavedState();
+if(saved){
+  if(saved.gameOver){
+    localStorage.removeItem('kaiser_save');
+  } else {
+    state=saved;
+    // Fehlende Felder aus alten Saves ergänzen
+    if(!state.decisions.grainSell) state.decisions.grainSell=0;
+    if(!state.lastGV) state.lastGV=null;
+    if(!state.popCap) state.popCap=300;
+    if(!state.housingLevel) state.housingLevel=0;
+    if(state.hasWalls===undefined) state.hasWalls=false;
+    document.getElementById('event-title').textContent='Spielstand geladen';
+    document.getElementById('event-text').textContent=`Willkommen zurück, Kaiser! Ihr regiert im Jahr ${state.round} von 20.`;
+  }
+}
+syncSliders();
+updateUI();
+</script>
+</body>
+</html>
