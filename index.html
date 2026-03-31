@@ -430,7 +430,7 @@
         <path class="region" id="region-west"     d="M60,120 Q100,90 150,80 Q155,100 148,125 Q140,155 130,175 Q110,170 90,160 Q65,148 55,135 Z" style="fill:url(#forestPattern);stroke:#1a4008;stroke-width:1.2"/>
         <path class="region" id="region-center"   d="M160,80 Q210,100 280,100 Q310,105 340,110 Q350,135 345,160 Q330,185 300,195 Q265,200 235,195 Q205,185 185,170 Q165,155 158,135 Q148,125 155,100 Z" style="fill:url(#centerGrad);stroke:#3a6a18;stroke-width:1.2"/>
         <path class="region" id="region-farm"     d="M280,100 Q340,110 380,115 Q400,140 395,165 Q380,185 355,192 Q330,195 300,195 Q330,185 345,160 Q350,135 340,110 Z" style="fill:url(#farmPattern);stroke:#987820;stroke-width:1.2"/>
-        <path class="region" id="region-mountains"d="M380,45 Q440,30 500,50 Q530,70 520,100 Q500,115 470,110 Q440,118 410,110 Q385,100 380,80 Z" style="fill:url(#mountainGrad);stroke:#5a4a3a;stroke-width:1.5"/>
+        <path class="region" id="region-mountains" d="M380,45 Q440,30 500,50 Q530,70 520,100 Q500,115 470,110 Q440,118 410,110 Q385,100 380,80 Z" style="fill:url(#mountainGrad);stroke:#5a4a3a;stroke-width:1.5"/>
         <path class="region" id="region-enemy1"   d="M500,50 Q555,45 590,75 Q595,110 575,130 Q550,140 520,130 Q500,115 520,100 Z" style="fill:url(#enemyGrad);stroke:#480808;stroke-width:1.5;opacity:.88"/>
         <path class="region" id="region-enemy2"   d="M395,165 Q430,160 460,175 Q480,195 470,220 Q450,235 420,230 Q395,220 385,200 Z" style="fill:url(#enemyGrad);stroke:#480808;stroke-width:1.5;opacity:.88"/>
         <path class="region" id="region-ally"     d="M185,170 Q235,195 300,195 Q300,230 285,255 Q260,270 230,265 Q200,258 180,240 Q162,220 165,200 Z" style="fill:url(#allyGrad);stroke:#083a5a;stroke-width:1.5;opacity:.82"/>
@@ -1548,7 +1548,7 @@ const ADVISOR_RULES=[
   {c:s=>s.gold<80, t:'Die Staatskasse ist fast leer. Steuern erhöhen!'},
   {c:s=>s.factions&&s.factions.some(f=>f.relation==='enemy'&&f.strength>120), t:'⚠️ Feindliche Mächte rüsten massiv auf!'},
   {c:s=>s.factions&&s.factions.every(f=>f.relation!=='ally'), t:'Ein Bündnis würde Euch Handelsgold und Sicherheit bringen.'},
-  {c:s=>s.round>16, t:`Nur noch ${21-s.round} Jahre bis Ihr in die Annalen eingeht.`},
+  {c:s=>s.round>16, t:s=>`Nur noch ${21-s.round} Jahre bis Ihr in die Annalen eingeht.`},
   {c:s=>s.soldiers<15, t:'Unsere Verteidigung ist kritisch schwach!'},
   {c:s=>s.bMarkets===0&&s.gold>300, t:'Ein Markt würde Eure Einnahmen erheblich steigern.'},
   {c:s=>(s.round-1)%4===2, t:'Herbst – maximiert jetzt die Ernte!'},
@@ -1556,7 +1556,9 @@ const ADVISOR_RULES=[
 ];
 function getAdvisor(s) {
   const r=ADVISOR_RULES.filter(x=>x.c(s));
-  return r.length ? r[Math.floor(Math.random()*r.length)].t : 'Das Reich gedeiht unter Eurer Herrschaft.';
+  if (!r.length) return 'Das Reich gedeiht unter Eurer Herrschaft.';
+  const t = r[Math.floor(Math.random()*r.length)].t;
+  return typeof t === 'function' ? t(s) : t;
 }
 
 const TITLES_M = ['Baron','Graf','Herzog','König','Kaiser'];
