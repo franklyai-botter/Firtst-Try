@@ -291,10 +291,11 @@
 
       <div class="round-info">
         <div class="round-label">Jahr des Herrn</div>
-        <div class="round-num" id="round-display">1</div>
+        <div class="round-num" id="round-display">1701</div>
         <div class="round-label">von 20</div>
         <div class="season-badge" id="season-display">🌱 Frühling</div>
       </div>
+      <div id="title-display" style="text-align:center;font-family:'Cinzel',serif;font-size:.7rem;letter-spacing:2px;color:var(--gold);margin-top:6px;font-style:italic"></div>
 
       <div style="margin-top:12px">
         <div class="resource-row"><span class="res-icon">👑</span><div class="res-info"><div class="res-label">Gold</div><div class="res-value" id="gold-val">500</div></div><div class="res-delta" id="gold-delta">--</div></div>
@@ -317,7 +318,7 @@
 
       <div class="gv-box" id="gv-box">
         <div class="gv-title">📒 Letzte Runde – Bilanz</div>
-        <div class="gv-row income"><span>+ Steuern</span><span id="gv-tax">–</span></div>
+        <div class="gv-row income"><span>+ Steuern (gesamt)</span><span id="gv-tax">–</span></div>
         <div class="gv-row income"><span>+ Getreideverkauf</span><span id="gv-grain-sell">–</span></div>
         <div class="gv-row expense"><span>− Rekrutierung</span><span id="gv-recruit">–</span></div>
         <div class="gv-row expense"><span>− Soldatenunterhalt</span><span id="gv-upkeep">–</span></div>
@@ -747,23 +748,37 @@
       <div class="action-section">
         <div class="action-section-title">🌾 Wirtschaft</div>
         <div class="slider-row">
-          <div class="slider-label"><span>Steuersatz</span><span class="slider-val" id="tax-display">20%</span></div>
-          <input type="range" id="tax-slider" min="0" max="60" value="20" step="5" oninput="onSlider('tax',this.value)">
-          <div class="slider-hint" id="tax-hint">ca. 100 Gold / Runde</div>
+          <div class="slider-label"><span>Mehrwertsteuer</span><span class="slider-val" id="vat-display">25%</span></div>
+          <input type="range" id="vat-slider" min="10" max="40" value="25" step="5" oninput="onSlider('vat',this.value)">
+          <div class="slider-hint" id="vat-hint">ca. 2000 Gold / Runde</div>
         </div>
         <div class="slider-row">
-          <div class="slider-label"><span>Getreideverteilung</span><span class="slider-val" id="grain-display">150 / Rd.</span></div>
-          <input type="range" id="grain-slider" min="50" max="400" value="150" step="10" oninput="onSlider('grain',this.value)">
-          <div class="slider-hint" id="grain-hint">ca. 0,75 Getreide / Person → Zufriedenheit −7</div>
+          <div class="slider-label"><span>Einkommenssteuer</span><span class="slider-val" id="income-tax-display">10%</span></div>
+          <input type="range" id="income-tax-slider" min="0" max="20" value="10" step="2" oninput="onSlider('incomeTax',this.value)">
+          <div class="slider-hint" id="income-tax-hint">ca. 400 Gold / Runde</div>
+        </div>
+        <div class="slider-row">
+          <div class="slider-label"><span>Justiz</span><span class="slider-val" id="justice-display" style="font-size:.65rem">bescheiden</span></div>
+          <div style="display:flex;gap:4px;margin-top:3px">
+            <button onclick="onJustice('gering')" id="justice-gering" class="btn btn-primary" style="flex:1;font-size:.55rem;padding:3px 2px;opacity:.6">Gering +5😊</button>
+            <button onclick="onJustice('bescheiden')" id="justice-bescheiden" class="btn btn-primary" style="flex:1;font-size:.55rem;padding:3px 2px">Bescheiden</button>
+            <button onclick="onJustice('streng')" id="justice-streng" class="btn btn-primary" style="flex:1;font-size:.55rem;padding:3px 2px;opacity:.6">Streng +150💀</button>
+          </div>
+          <div class="slider-hint" id="justice-hint">+15 Gold · ±0 Zufriedenheit</div>
+        </div>
+        <div class="slider-row">
+          <div class="slider-label"><span>Getreideverteilung</span><span class="slider-val" id="grain-display">50%</span></div>
+          <input type="range" id="grain-slider" min="20" max="80" value="50" step="5" oninput="onSlider('grain',this.value)">
+          <div class="slider-hint" id="grain-hint">50% der Reserven · Zufriedenheit +1/Rd.</div>
         </div>
         <div class="slider-row">
           <div class="slider-label"><span>Anbaufläche</span><span class="slider-val" id="farm-display">40%</span></div>
           <input type="range" id="farm-slider" min="10" max="80" value="40" step="5" oninput="onSlider('farm',this.value)">
-          <div class="slider-hint" id="farm-hint">ca. 96 Getreide / Runde (Frühling)</div>
+          <div class="slider-hint" id="farm-hint">ca. 1000 Getreide / Runde (Frühling)</div>
         </div>
         <div class="slider-row">
           <div class="slider-label"><span>Getreide verkaufen</span><span class="slider-val" id="grain-sell-display">0 / Rd.</span></div>
-          <input type="range" id="grain-sell-slider" min="0" max="300" value="0" step="10" oninput="onSlider('grainSell',this.value)">
+          <input type="range" id="grain-sell-slider" min="0" max="1000" value="0" step="50" oninput="onSlider('grainSell',this.value)">
           <div style="font-size:.6rem; color:var(--stone); margin-top:2px" id="grain-price-hint">Marktpreis: 1,0 Gold / 10 Einh.</div>
         </div>
       </div>
@@ -785,12 +800,12 @@
 
       <div class="action-section">
         <div class="action-section-title">🏗 Bauen (Gold)</div>
-        <button class="btn btn-primary" onclick="buildBuilding('market')" style="font-size:.62rem">🏪 Markt (200 Gold) +20% Steuern</button>
-        <button class="btn btn-primary" onclick="buildBuilding('granary')" style="font-size:.62rem">🏚 Speicher (150 Gold) +20% Ernte</button>
-        <button class="btn btn-primary" onclick="buildBuilding('militaryCamp')" style="font-size:.62rem">⚔️ Militärlager (180 Gold) -20% Kosten</button>
-        <button class="btn btn-primary" onclick="buildBuilding('church')" style="font-size:.62rem">⛪ Kathedrale (250 Gold) +5 Zufriedenheit</button>
-        <button class="btn btn-primary" onclick="buildBuilding('walls')" style="font-size:.62rem">🏰 Stadtmauern (300 Gold) Angriff +20%</button>
-        <button class="btn btn-primary" id="btn-housing" onclick="buildHousing()" style="font-size:.62rem">🏘 Wohnviertel (80 Gold) +150 Bev.-Grenze</button>
+        <button class="btn btn-primary" onclick="buildBuilding('market')" id="btn-market" style="font-size:.62rem">🏪 Markt (200G) +Einnahmen</button>
+        <button class="btn btn-primary" onclick="buildBuilding('mill')" id="btn-mill" style="font-size:.62rem">🏭 Mühle (150G) +15% Ernte</button>
+        <button class="btn btn-primary" onclick="buildBuilding('militaryCamp')" style="font-size:.62rem">⚔️ Militärlager (180G) -20% Kosten</button>
+        <button class="btn btn-primary" onclick="buildBuilding('church')" style="font-size:.62rem">⛪ Kathedrale (250G) +5 Zufriedenheit</button>
+        <button class="btn btn-primary" onclick="buildBuilding('walls')" style="font-size:.62rem">🏰 Stadtmauern (300G) Angriff +20%</button>
+        <button class="btn btn-primary" id="btn-housing" onclick="buildHousing()" style="font-size:.62rem">🏘 Wohnviertel (80G) +150 Bev.-Grenze</button>
       </div>
 
       <div class="action-section">
@@ -810,6 +825,24 @@
     </div>
   </div>
 
+</div>
+
+<!-- START SCREEN -->
+<div class="modal-overlay" id="start-screen" style="display:none">
+  <div class="modal" style="max-width:420px">
+    <span class="modal-icon">⚔️</span>
+    <h2 style="font-family:'Cinzel Decorative',serif;color:var(--gold-bright);font-size:1.4rem;margin-bottom:8px">KAISER</h2>
+    <p style="margin-bottom:16px;font-style:italic;font-size:.85rem">Tretet in die Annalen ein und führt Euer Reich zu Ruhm.</p>
+    <div style="margin-bottom:12px">
+      <label style="font-family:'Cinzel',serif;font-size:.65rem;letter-spacing:2px;color:var(--stone);text-transform:uppercase;display:block;margin-bottom:4px">Euer Name</label>
+      <input type="text" id="player-name-input" placeholder="Name eingeben..." style="width:100%;padding:8px 10px;font-family:'IM Fell English',serif;font-size:.9rem;background:rgba(244,228,193,.9);border:2px solid var(--parchment-shadow);border-radius:3px;color:var(--ink);outline:none">
+    </div>
+    <div style="margin-bottom:16px;display:flex;gap:8px;justify-content:center">
+      <button id="gender-m-btn" onclick="selectGender('m')" class="btn btn-primary" style="flex:1">♂ Baron</button>
+      <button id="gender-f-btn" onclick="selectGender('f')" class="btn btn-primary" style="flex:1;opacity:.6">♀ Baronin</button>
+    </div>
+    <button class="btn btn-primary" onclick="startNewGame()" style="width:100%;font-size:.85rem;padding:10px">⚔ Herrschaft beginnen</button>
+  </div>
 </div>
 
 <!-- TOOLTIP -->
@@ -858,7 +891,7 @@ const EVENTS = [
   { id:'plague', chance:.08, icon:'🤒', title:'Seuche', bad:true, contextHint:'deadly plague killed many citizens', effect:s=>{s.population=Math.max(10,s.population-30);s.satisfaction-=15;}, fallback:'Eine mysteriöse Krankheit greift um sich. Viele sterben.' },
   { id:'fire', chance:.07, icon:'🔥', title:'Großbrand', bad:true, contextHint:'fire burned grain stores', effect:s=>{s.grain=Math.max(0,s.grain-250);}, fallback:'Flammen zerstören die Getreidespeicher. Asche liegt über dem Reich.' },
   { id:'good_harvest', chance:.14, icon:'✨', title:'Reiche Ernte', bad:false, contextHint:'exceptional harvest blessed the kingdom', effect:s=>{s.grain+=200;s.satisfaction+=7;}, fallback:'Die Götter sind wohlgesonnen! Die Ernte übertrifft alle Erwartungen.' },
-  { id:'caravan', chance:.11, icon:'🐫', title:'Handelskäravan', bad:false, contextHint:'wealthy trading caravan arrived', effect:s=>{s.gold+=s.hasMarket?180:120;s.satisfaction+=4;}, fallback:'Eine reiche Karawane bringt Waren und Gold aus dem fernen Osten.' },
+  { id:'caravan', chance:.11, icon:'🐫', title:'Handelskäravan', bad:false, contextHint:'wealthy trading caravan arrived', effect:s=>{s.gold+=s.bMarkets>0?180:120;s.satisfaction+=4;}, fallback:'Eine reiche Karawane bringt Waren und Gold aus dem fernen Osten.' },
   { id:'festival', chance:.09, icon:'🎉', title:'Volksfest', bad:false, contextHint:'spontaneous festival lifted spirits', effect:s=>{s.satisfaction=Math.min(100,s.satisfaction+15);}, fallback:'Ein spontanes Volksfest erfüllt das ganze Reich mit Musik und Freude.' },
   { id:'ore', chance:.07, icon:'⛏', title:'Erzfund', bad:false, contextHint:'miners found rich ore veins', effect:s=>{s.gold+=100;}, fallback:'Bergleute entdecken eine reiche Erzader in den Eisengebirgen.' },
   { id:'immigrants', chance:.06, icon:'🚶', title:'Neue Siedler', bad:false, contextHint:'settlers arrived expanding population', effect:s=>{s.population+=25;s.satisfaction+=3;}, fallback:'Flüchtlinge aus fernen Landen suchen Schutz unter Eurem Banner.' },
@@ -866,11 +899,11 @@ const EVENTS = [
 ];
 
 const BUILDINGS_DEF = {
-  market:       {cost:200, flag:'hasMarket',       name:'🏪 Marktplatz'},
-  granary:      {cost:150, flag:'hasGranary',       name:'🏚 Getreidespeicher'},
-  militaryCamp: {cost:180, flag:'hasMilitaryCamp',  name:'⚔️ Militärlager'},
-  church:       {cost:250, flag:'hasChurch',        name:'⛪ Kathedrale'},
-  walls:        {cost:300, flag:'hasWalls',         name:'🏰 Stadtmauern'},
+  market:       {cost:200, countKey:'bMarkets',    name:'🏪 Marktplatz',    multi:true},
+  mill:         {cost:150, countKey:'bMills',      name:'🏭 Kornmühle',     multi:true},
+  militaryCamp: {cost:180, flag:'hasMilitaryCamp', name:'⚔️ Militärlager',  multi:false},
+  church:       {cost:250, flag:'hasChurch',       name:'⛪ Kathedrale',     multi:false},
+  walls:        {cost:300, flag:'hasWalls',        name:'🏰 Stadtmauern',   multi:false},
 };
 
 const REGION_DATA = {
@@ -890,13 +923,17 @@ let state = createState();
 function createState() {
   return {
     round:1, maxRounds:20, gameOver:false,
-    gold:500, grain:800, population:200, soldiers:30, land:3, satisfaction:65,
+    gold:15000, grain:5000, population:200, soldiers:30, land:1000, satisfaction:65,
     enemyStrength:80,
-    hasMarket:false, hasGranary:false, hasMilitaryCamp:false, hasChurch:false, hasWalls:false,
-    popCap:300, housingLevel:0,
+    hasMilitaryCamp:false, hasChurch:false, hasWalls:false,
+    bMarkets:0, bMills:0,
+    popCap:500, housingLevel:0,
     lowSatStreak:0,
-    decisions:{taxRate:20, grainDist:150, farming:40, recruit:5, grainSell:0},
-    buildings:['🏰 Burg','🌾 Felder (3)'],
+    landPrice:70,
+    year:1701,
+    playerName:'', playerGender:'m', nobilityTitle:'Baron',
+    decisions:{vatRate:25, incomeTaxRate:10, justice:'bescheiden', grainDistPct:50, farming:40, recruit:5, grainSell:0},
+    buildings:['🏰 Burg','🌾 Felder (1000 ha)'],
     deltas:{},
     factions: [
       { id:'schattenlande', name:'Schattenlande', icon:'💀', relation:'enemy',   strength:85,  aggression:0.60, allianceCost:350 },
@@ -931,24 +968,42 @@ async function callClaude(prompt, maxTokens=130) {
 }
 
 // FORMULAS
+function applyGrainSpoilage(s) {
+  const rate = 0.10 + Math.random() * 0.35; // 10–45%
+  const spoiled = Math.floor(s.grain * rate);
+  s.grain = Math.max(0, s.grain - spoiled);
+  return { spoiled, rate: Math.round(rate * 100) };
+}
 function calcTax(s) {
-  const base = Math.floor(s.population*(s.decisions.taxRate/100)*2.5);
-  return base + (s.hasMarket ? Math.floor(base*.2) : 0);
+  const vatIncome    = Math.floor(s.population * s.decisions.vatRate * 0.4);
+  const incomeTax    = Math.floor(s.population * s.decisions.incomeTaxRate * 0.2);
+  const justiceBonus = { gering: 0, bescheiden: 15, streng: 40 }[s.decisions.justice] || 0;
+  const marketIncome = (s.bMarkets||0) * Math.floor(s.population * 0.8);
+  return vatIncome + incomeTax + justiceBonus + marketIncome;
 }
 function calcHarvest(s) {
   const mult = SEASON_MULT[(s.round-1)%4];
-  const gran = s.hasGranary ? 1.2 : 1.0;
-  return Math.floor(s.land * s.decisions.farming * 0.8 * mult * gran);
+  const millFactor = 1.0 + ((s.bMills||0) * 0.15);
+  return Math.floor(s.land * s.decisions.farming * 0.025 * mult * millFactor);
 }
 function calcSatDelta(s) {
   let d=0;
-  // Nutze tatsächlich verteilte Menge falls vorhanden, sonst Slider-Wert
-  const distUsed = (s._actualDist !== undefined) ? s._actualDist : s.decisions.grainDist;
-  const gpp = distUsed / Math.max(1, s.population);
-  if (gpp<.5) d-=18; else if(gpp<.8) d-=7; else if(gpp<1.2) d+=1; else if(gpp<1.5) d+=3; else d+=6;
-  if (s.decisions.taxRate>50) d-=12;
-  else if (s.decisions.taxRate>40) d-=Math.floor((s.decisions.taxRate-40)*.6);
-  else if (s.decisions.taxRate<10) d+=4;
+  const pct = (s._actualDistPct !== undefined) ? s._actualDistPct : s.decisions.grainDistPct;
+  if (pct <= 20) d -= 15;
+  else if (pct < 30) d -= 8;
+  else if (pct < 40) d -= 3;
+  else if (pct < 55) d += 1;
+  else if (pct < 70) d += 4;
+  else d += 7;
+  // MwSt-Effekt
+  if (s.decisions.vatRate > 35)      d -= 10;
+  else if (s.decisions.vatRate > 25) d -= 4;
+  else if (s.decisions.vatRate < 15) d += 3;
+  // Einkommensteuer-Effekt
+  if (s.decisions.incomeTaxRate > 15) d -= 5;
+  else if (s.decisions.incomeTaxRate > 10) d -= 2;
+  // Justiz-Effekt
+  d += { gering: 5, bescheiden: 0, streng: -8 }[s.decisions.justice] || 0;
   if (s.hasChurch) d+=5;
   return Math.max(-25, Math.min(20, d));
 }
@@ -978,7 +1033,14 @@ async function endTurn() {
   document.getElementById('btn-endturn').disabled = true;
 
   try {
+    // Landpreis-Fluktuation
+    state.landPrice = 40 + Math.floor(Math.random() * 60);
+
     const prev = {gold:state.gold, grain:state.grain, pop:state.population, sol:state.soldiers, land:state.land};
+    const prevPop = state.population;
+
+    // Getreideverfall VOR Ernte
+    const spoilageResult = applyGrainSpoilage(state);
 
     // Einnahmen & Ausgaben – alle Flows tracken
     const taxIncome = calcTax(state);
@@ -987,9 +1049,10 @@ async function endTurn() {
     const harvest = calcHarvest(state);
     state.grain += harvest;
 
-    // Tatsächlich verteilte Menge (nicht mehr als vorhanden)
-    const actualDist = Math.min(state.decisions.grainDist, state.grain);
-    state.grain = Math.max(0, state.grain - state.decisions.grainDist);
+    // Getreideverteilung als % der Reserven
+    const distributed = Math.floor(state.grain * (state.decisions.grainDistPct / 100));
+    state.grain = Math.max(0, state.grain - distributed);
+    const actualDist = distributed;
 
     // Getreideverkauf (saisonale Preise)
     const grainPrice = GRAIN_SELL_PRICES[(state.round-1)%4];
@@ -1004,13 +1067,13 @@ async function endTurn() {
     let actualRecCost = affordable * costPerSoldier;
     state.gold -= actualRecCost;
     state.soldiers += affordable;
-    const upkeep = Math.floor(state.soldiers * campDisc);
+    const upkeep = 60;
     state.gold = Math.max(0, state.gold - upkeep);
 
     // Zufriedenheit mit TATSÄCHLICHER Verteilung berechnen (nicht Slider-Wunsch)
-    state._actualDist = actualDist;
+    state._actualDistPct = state.decisions.grainDistPct;
     state.satisfaction = Math.max(0, Math.min(100, state.satisfaction + calcSatDelta(state)));
-    delete state._actualDist;
+    delete state._actualDistPct;
     state.population = Math.max(10, state.population + calcPopChange(state));
 
     // G&V vorläufig speichern (vor Events)
@@ -1051,7 +1114,20 @@ async function endTurn() {
     // Tatsächlichen Saldo nach allem (inkl. Events) eintragen
     state.lastGV.netGold  = state.deltas.gold;
     state.lastGV.netGrain = state.deltas.grain;
+
+    if (!ev) {
+      const weather = ['Gutes Wetter, reiche Ernte ✨','Trockener Sommer, mittlere Ernte','Regen und Sturm, schlechte Ernte 🌧','Schnee und Frost ❄️'][(state.round-1)%4];
+      const popChange = state.population - prevPop;
+      evTitle = weather.split(',')[0];
+      evText = `${weather}\n${spoilageResult.rate}% des Getreides verfault. +${Math.max(0,popChange)} Einwohner zugezogen · Ernte: +${harvest} · Steuern: +${taxIncome} · Unterhalt: ${upkeep}`;
+    }
+
     state.round++;
+
+    const newTitle = checkTitlePromotion(state);
+    if (newTitle) {
+      showModal('👑', 'Neuer Titel!', `Das Reich huldigt Euch: ${newTitle} ${state.playerName}! Eure Herrschaft überstrahlt alle Vergleiche.`, false);
+    }
 
     // End check
     const end = checkEnd();
@@ -1075,8 +1151,9 @@ function rollEvent(s) {
 
 function buildEventPrompt(ev, s) {
   const sea = ['Frühling','Sommer','Herbst','Winter'][(s.round-1)%4];
+  const anno = (s.year || 1701) + (s.round - 1);
   return `Du bist Hofchronist. Schreibe 2 dramatische Sätze auf Deutsch (max 55 Wörter).
-Stand: Jahr ${s.round}/20, ${sea}, Volk:${s.population}, Gold:${s.gold}, Getreide:${s.grain}, Zufriedenheit:${s.satisfaction}%
+Stand: Anno ${anno} (Jahr ${s.round}/20), ${sea}, Volk:${s.population}, Gold:${s.gold}, Getreide:${s.grain}, Zufriedenheit:${s.satisfaction}%
 Ereignis: ${ev.title} (${ev.contextHint})
 Mittelalterlicher Stil, keine Markdown.`;
 }
@@ -1116,7 +1193,7 @@ function attackEnemy() {
     const grainLoot = 80 + Math.floor(Math.random()*80);
     const settlers  = 10 + Math.floor(Math.random()*15);
     const loss      = Math.floor(state.soldiers * .12);
-    state.land++;
+    state.land += 100 + Math.floor(Math.random() * 200);
     state.enemyStrength = Math.max(30, state.enemyStrength - 40);
     state.soldiers  = Math.max(0, state.soldiers - loss);
     state.gold     += plunder;
@@ -1189,7 +1266,7 @@ function attackFaction(factionId) {
     f.strength    = Math.max(15, f.strength - 30);
     state.soldiers   = Math.max(0, state.soldiers - loss);
     state.gold      += plunder;
-    state.land      += 1;
+    state.land      += 100 + Math.floor(Math.random() * 200);
     state.satisfaction = Math.min(100, state.satisfaction + 8);
     state.buildings.push('🏴 Gebiet ' + state.land);
     if (f.strength < 20) { f.relation = 'neutral'; f.aggression = 0.05; }
@@ -1271,18 +1348,28 @@ function updateFactionUI() {
 function buildBuilding(id) {
   const b=BUILDINGS_DEF[id];
   if(!b) return;
-  if(state[b.flag]) { showModal('ℹ️','Bereits vorhanden','Dieses Gebäude existiert bereits.',false); return; }
+  if(!b.multi && state[b.flag]) { showModal('ℹ️','Bereits vorhanden','Dieses Gebäude existiert bereits.',false); return; }
   if(state.gold<b.cost) { showModal('💸','Zu wenig Gold',`Benötigt: ${b.cost} Gold. Verfügbar: ${state.gold}.`,true); return; }
-  state.gold-=b.cost; state[b.flag]=true; state.buildings.push(b.name);
+  state.gold -= b.cost;
+  if(b.multi) {
+    state[b.countKey] = (state[b.countKey] || 0) + 1;
+    state.buildings = state.buildings.filter(x => !x.startsWith(b.name));
+    state.buildings.push(b.name + ' ×' + state[b.countKey]);
+  } else {
+    state[b.flag] = true;
+    state.buildings.push(b.name);
+  }
   saveState();
-  showModal('🏗',`${b.name} erbaut!`,`Das Gebäude steht! Genießt die Früchte Eurer Investition.`,false);
+  showModal('🏗',`${b.name} erbaut!`,b.multi ? `Ihr besitzt nun ${state[b.countKey]} ${b.name.replace(/[^\w\s]/g,'')}. Einnahmen steigen.` : `Das Gebäude steht! Genießt die Früchte Eurer Investition.`,false);
   updateUI();
 }
 
 // UI
 function updateUI(evTitle, evText) {
   const s=state;
-  document.getElementById('round-display').textContent = Math.min(s.round, s.maxRounds);
+  document.getElementById('round-display').textContent = s.year ? (s.year + (s.round - 1)) : Math.min(s.round, s.maxRounds);
+  const titleEl = document.getElementById('title-display');
+  if(titleEl) titleEl.textContent = s.nobilityTitle && s.playerName ? `${s.nobilityTitle} ${s.playerName}` : '';
   document.getElementById('season-display').textContent = SEASONS[(s.round-1)%4];
   document.getElementById('gold-val').textContent = s.gold.toLocaleString('de-DE');
   document.getElementById('grain-val').textContent = s.grain.toLocaleString('de-DE');
@@ -1340,10 +1427,10 @@ function updateUI(evTitle, evText) {
       const tax2 = calcTax(s);
       const grainSell2 = Math.floor((s.decisions.grainSell||0) * grainPrice2 / 10);
       const recCost2 = Math.floor((s.decisions.recruit||0) * 15 * campDisc2);
-      const upkeep2 = Math.floor(s.soldiers * campDisc2);
+      const upkeep2 = 60;
       const harv2 = calcHarvest(s);
       const sellAmt2 = s.decisions.grainSell||0;
-      const dist2 = Math.min(s.decisions.grainDist, s.grain + harv2);
+      const dist2 = Math.floor((s.grain + harv2) * (s.decisions.grainDistPct / 100));
       gv = {
         tax: tax2, grainSell: grainSell2,
         recruit: recCost2, upkeep: upkeep2,
@@ -1403,18 +1490,29 @@ function updateUI(evTitle, evText) {
   // Militär-Info
   const campDisc = s.hasMilitaryCamp ? .8 : 1;
   const wallBonus = s.hasWalls ? 1.2 : 1.0;
-  const upkeepTotal = Math.floor(s.soldiers * 1 * campDisc);
+  const upkeepTotal = 60;
   const atkPower = Math.floor(s.soldiers * wallBonus);
   document.getElementById('gv-enemy').textContent = s.enemyStrength + ' (Schwelle: '+Math.floor(s.enemyStrength*.8)+')';
   document.getElementById('gv-atk').textContent = atkPower + (s.hasWalls?' (Mauern +20%)':'') + ' → '+(atkPower>s.enemyStrength*.8?'✅ Sieg wahrsch.':'⚠️ Riskant');
   // Slider-Hints aktualisieren
   updateSliderHints();
 
-  // Gebäude-Buttons sperren wenn bereits gebaut
-  const bflags={market:'hasMarket',granary:'hasGranary',militaryCamp:'hasMilitaryCamp',church:'hasChurch',walls:'hasWalls'};
+  // Gebäude-Buttons: multi-Gebäude mit Count, single-Gebäude sperren wenn gebaut
+  const bflags={militaryCamp:'hasMilitaryCamp',church:'hasChurch',walls:'hasWalls'};
   document.querySelectorAll('[onclick^="buildBuilding"]').forEach(btn=>{
     const m=btn.getAttribute('onclick').match(/buildBuilding\('(\w+)'\)/);
-    if(m&&bflags[m[1]]) btn.disabled=!!s[bflags[m[1]]];
+    if(!m) return;
+    const id=m[1];
+    const def=BUILDINGS_DEF[id];
+    if(!def) return;
+    if(def.multi) {
+      const count=s[def.countKey]||0;
+      btn.disabled=false;
+      const baseTxt=id==='market'?`🏪 Markt ${count>0?'×'+count+' ':''} (200G) +Einnahmen`:`🏭 Mühle ${count>0?'×'+count+' ':''} (150G) +15% Ernte`;
+      btn.textContent=baseTxt;
+    } else if(bflags[id]) {
+      btn.disabled=!!s[bflags[id]];
+    }
   });
   // Wohnviertel-Button aktualisieren
   const hBtn = document.getElementById('btn-housing');
@@ -1452,13 +1550,32 @@ const ADVISOR_RULES=[
   {c:s=>s.factions&&s.factions.every(f=>f.relation!=='ally'), t:'Ein Bündnis würde Euch Handelsgold und Sicherheit bringen.'},
   {c:s=>s.round>16, t:`Nur noch ${21-s.round} Jahre bis Ihr in die Annalen eingeht.`},
   {c:s=>s.soldiers<15, t:'Unsere Verteidigung ist kritisch schwach!'},
-  {c:s=>!s.hasMarket&&s.gold>300, t:'Ein Markt würde Eure Einnahmen erheblich steigern.'},
+  {c:s=>s.bMarkets===0&&s.gold>300, t:'Ein Markt würde Eure Einnahmen erheblich steigern.'},
   {c:s=>(s.round-1)%4===2, t:'Herbst – maximiert jetzt die Ernte!'},
   {c:s=>(s.round-1)%4===3, t:'Winter – kaum Ernte. Spart Getreide!'},
 ];
 function getAdvisor(s) {
   const r=ADVISOR_RULES.filter(x=>x.c(s));
   return r.length ? r[Math.floor(Math.random()*r.length)].t : 'Das Reich gedeiht unter Eurer Herrschaft.';
+}
+
+const TITLES_M = ['Baron','Graf','Herzog','König','Kaiser'];
+const TITLES_F = ['Baronin','Gräfin','Herzogin','Königin','Kaiserin'];
+const TITLE_LAND = [0, 2000, 5000, 10000, 20000];
+
+function checkTitlePromotion(s) {
+  const titles = s.playerGender === 'f' ? TITLES_F : TITLES_M;
+  for (let i = titles.length - 1; i >= 0; i--) {
+    if (s.land >= TITLE_LAND[i]) {
+      const newTitle = titles[i];
+      if (s.nobilityTitle !== newTitle) {
+        s.nobilityTitle = newTitle;
+        return newTitle;
+      }
+      break;
+    }
+  }
+  return null;
 }
 
 // SAVE / LOAD
@@ -1487,7 +1604,7 @@ function buildHousing() {
 }
 
 function updateMapRegions(s) {
-  [{land:4,id:'region-mountains'},{land:5,id:'region-enemy1'},{land:6,id:'region-enemy2'}].forEach(c=>{
+  [{land:1200,id:'region-mountains'},{land:1500,id:'region-enemy1'},{land:2000,id:'region-enemy2'}].forEach(c=>{
     if(s.land>=c.land) {
       const el=document.getElementById(c.id); if(!el) return;
       el.style.fill='url(#centerGrad)'; el.style.stroke='#3a6a18';
@@ -1497,13 +1614,18 @@ function updateMapRegions(s) {
   // Markt auf Karte
   const mktG = document.getElementById('map-market');
   const mktL = document.getElementById('map-market-label');
-  if(mktG) mktG.style.opacity = s.hasMarket ? '1' : '0';
-  if(mktL) mktL.style.opacity = s.hasMarket ? '1' : '0';
+  if(mktG) mktG.style.opacity = (s.bMarkets||0)>0 ? '1' : '0';
+  if(mktL) mktL.style.opacity = (s.bMarkets||0)>0 ? '1' : '0';
   // Wohnviertel auf Karte
   const hG = document.getElementById('map-housing');
   const hL = document.getElementById('map-housing-label');
   if(hG) hG.style.opacity = (s.housingLevel||0)>=1 ? '1' : '0';
   if(hL) hL.style.opacity = (s.housingLevel||0)>=1 ? '1' : '0';
+  // Gebäude-Counter auf Karte
+  const mktCount = document.getElementById('map-market-count');
+  const millCount = document.getElementById('map-mill-count');
+  if(mktCount) mktCount.textContent = s.bMarkets > 0 ? `🏪×${s.bMarkets}` : '';
+  if(millCount) millCount.textContent = s.bMills > 0 ? `🏭×${s.bMills}` : '';
 }
 
 // MODAL
@@ -1519,20 +1641,34 @@ function closeModal() { document.getElementById('event-modal').classList.remove(
 function onSlider(id, rawVal) {
   const val = parseInt(rawVal);
   const displayMap = {
-    tax: ['tax-display', v => v+'%'],
-    grain: ['grain-display', v => v+' / Rd.'],
-    farm: ['farm-display', v => v+'%'],
-    recruit: ['recruit-display', v => v+' Mann'],
-    grainSell: ['grain-sell-display', v => v+' / Rd.'],
+    vat:      ['vat-display',        v => v+'%'],
+    incomeTax:['income-tax-display', v => v+'%'],
+    grain:    ['grain-display',      v => v+'%'],
+    farm:     ['farm-display',       v => v+'%'],
+    recruit:  ['recruit-display',    v => v+' Mann'],
+    grainSell:['grain-sell-display', v => v+' / Rd.'],
   };
   const stateKey = {
-    tax:'taxRate', grain:'grainDist', farm:'farming',
-    recruit:'recruit', grainSell:'grainSell'
+    vat:'vatRate', incomeTax:'incomeTaxRate', grain:'grainDistPct',
+    farm:'farming', recruit:'recruit', grainSell:'grainSell'
   };
-  const [dispId, fmt] = displayMap[id];
-  const dispEl = document.getElementById(dispId);
-  if(dispEl) dispEl.textContent = fmt(val);
-  state.decisions[stateKey[id]] = val;
+  const entry = displayMap[id];
+  if(entry) {
+    const dispEl = document.getElementById(entry[0]);
+    if(dispEl) dispEl.textContent = entry[1](val);
+  }
+  if(stateKey[id]) state.decisions[stateKey[id]] = val;
+  updateSliderHints();
+}
+
+function onJustice(val) {
+  state.decisions.justice = val;
+  const jdisp = document.getElementById('justice-display');
+  if(jdisp) jdisp.textContent = val;
+  ['gering','bescheiden','streng'].forEach(v => {
+    const btn = document.getElementById('justice-' + v);
+    if(btn) btn.style.opacity = v === val ? '1' : '.5';
+  });
   updateSliderHints();
 }
 
@@ -1543,25 +1679,37 @@ function updateSliderHints() {
   const seasonMult = [1.0,1.3,1.6,0.3][si];
   const seasonName = ['Frühling','Sommer','Herbst','Winter'][si];
 
-  // Steuern-Hint
-  const taxGold = calcTax(s);
-  const taxEl = document.getElementById('tax-hint');
-  if(taxEl) taxEl.textContent = `ca. ${taxGold} Gold / Runde`;
+  // MwSt-Hint
+  const vatGold = Math.floor(s.population * (s.decisions.vatRate||25) * 0.4);
+  const vatEl = document.getElementById('vat-hint');
+  if(vatEl) vatEl.textContent = `ca. ${vatGold} Gold / Runde`;
+
+  // Einkommensteuer-Hint
+  const incomeGold = Math.floor(s.population * (s.decisions.incomeTaxRate||10) * 0.2);
+  const incEl = document.getElementById('income-tax-hint');
+  if(incEl) incEl.textContent = `ca. ${incomeGold} Gold / Runde`;
+
+  // Justiz-Hint
+  const justBon = { gering: 0, bescheiden: 15, streng: 40 }[s.decisions.justice] || 0;
+  const justSat = { gering: '+5 Zufriedenheit', bescheiden: '±0', streng: '−8 Zufriedenheit' }[s.decisions.justice] || '±0';
+  const justEl = document.getElementById('justice-hint');
+  if(justEl) justEl.textContent = `+${justBon} Gold · ${justSat}`;
 
   // Getreideverteilung-Hint
-  const gpp = (s.decisions.grainDist / Math.max(1,s.population)).toFixed(2);
+  const pct = s.decisions.grainDistPct || 50;
   let satEffect = '';
-  if(gpp<.5) satEffect='Zufriedenheit −18/Rd.';
-  else if(gpp<.8) satEffect='Zufriedenheit −7/Rd.';
-  else if(gpp<1.2) satEffect='Zufriedenheit +1/Rd.';
-  else if(gpp<1.5) satEffect='Zufriedenheit +3/Rd.';
-  else satEffect='Zufriedenheit +6/Rd.';
+  if(pct<=20) satEffect='Zufriedenheit −15/Rd.';
+  else if(pct<30) satEffect='Zufriedenheit −8/Rd.';
+  else if(pct<40) satEffect='Zufriedenheit −3/Rd.';
+  else if(pct<55) satEffect='Zufriedenheit +1/Rd.';
+  else if(pct<70) satEffect='Zufriedenheit +4/Rd.';
+  else satEffect='Zufriedenheit +7/Rd.';
   const grainHintEl = document.getElementById('grain-hint');
-  if(grainHintEl) grainHintEl.textContent = `${gpp} Getreide/Person → ${satEffect}`;
+  if(grainHintEl) grainHintEl.textContent = `${pct}% der Reserven · ${satEffect}`;
 
   // Anbaufläche-Hint
-  const granary = s.hasGranary ? 1.2 : 1.0;
-  const expectedHarvest = Math.floor(s.land * s.decisions.farming * 0.8 * seasonMult * granary);
+  const millFactor = 1.0 + ((s.bMills||0) * 0.15);
+  const expectedHarvest = Math.floor(s.land * s.decisions.farming * 0.025 * seasonMult * millFactor);
   const farmEl = document.getElementById('farm-hint');
   if(farmEl) farmEl.textContent = `ca. ${expectedHarvest} Getreide / Runde (${seasonName})`;
 
@@ -1573,12 +1721,30 @@ function updateSliderHints() {
   if(recruitEl) recruitEl.textContent = `Kosten: ${totalRecCost} Gold einmalig · +${extraUpkeep} Gold Unterhalt/Rd.`;
 
   // Armee-Gesamt-Hint
-  const totalUpkeep = Math.floor(s.soldiers * 1 * campDisc);
   const wallBonus = s.hasWalls ? 1.2 : 1.0;
   const atkPow = Math.floor(s.soldiers * wallBonus);
   const threshold = Math.floor(s.enemyStrength * .8);
   const armyEl = document.getElementById('army-hint');
-  if(armyEl) armyEl.textContent = `Unterhalt: ${totalUpkeep} Gold/Rd. · Angriffsmacht: ~${atkPow} vs. Feind: ${threshold}`;
+  if(armyEl) armyEl.textContent = `Unterhalt: 60 Gold pauschal · Angriffsmacht: ~${atkPow} vs. Feind: ${threshold}`;
+}
+
+// START SCREEN FUNCTIONS
+function selectGender(g) {
+  state.playerGender = g;
+  const mBtn = document.getElementById('gender-m-btn');
+  const fBtn = document.getElementById('gender-f-btn');
+  if(mBtn) mBtn.style.opacity = g==='m' ? '1' : '.5';
+  if(fBtn) fBtn.style.opacity = g==='f' ? '1' : '.5';
+  const base = g==='m' ? 'Baron' : 'Baronin';
+  state.nobilityTitle = base;
+}
+function startNewGame() {
+  const nameEl = document.getElementById('player-name-input');
+  const name = nameEl ? nameEl.value.trim() : '';
+  if (!name) { if(nameEl) { nameEl.style.borderColor='var(--red-bright)'; nameEl.placeholder='← Name eingeben!'; } return; }
+  state.playerName = name;
+  document.getElementById('start-screen').style.display = 'none';
+  updateUI();
 }
 
 // MAP TOOLTIPS
@@ -1614,11 +1780,14 @@ function syncSliders() {
     const disp = document.getElementById(id.replace('-slider','-display'));
     if(disp) disp.textContent = display;
   };
-  set('tax-slider',     d.taxRate,   d.taxRate+'%');
-  set('grain-slider',   d.grainDist, d.grainDist+' / Rd.');
-  set('farm-slider',    d.farming,   d.farming+'%');
-  set('recruit-slider', d.recruit,   d.recruit+' Mann');
-  set('grain-sell-slider', d.grainSell||0, (d.grainSell||0)+' / Rd.');
+  set('vat-slider',        d.vatRate||25,       (d.vatRate||25)+'%');
+  set('income-tax-slider', d.incomeTaxRate||10, (d.incomeTaxRate||10)+'%');
+  set('grain-slider',      d.grainDistPct||50,  (d.grainDistPct||50)+'%');
+  set('farm-slider',       d.farming||40,       (d.farming||40)+'%');
+  set('recruit-slider',    d.recruit||5,        (d.recruit||5)+' Mann');
+  set('grain-sell-slider', d.grainSell||0,      (d.grainSell||0)+' / Rd.');
+  // Justice buttons
+  onJustice(d.justice || 'bescheiden');
   updateSliderHints();
 }
 
@@ -1627,6 +1796,7 @@ function restartGame() {
   localStorage.removeItem('kaiser_save');
   state=createState();
   document.getElementById('gameover-screen').classList.remove('active');
+  document.getElementById('start-screen').style.display = 'flex';
   document.getElementById('event-title').textContent='Neues Spiel';
   document.getElementById('event-text').textContent='Ein neues Zeitalter beginnt. Führt Euer Reich zu Ruhm und Größe!';
   syncSliders();
@@ -1643,12 +1813,27 @@ if(saved){
     // Fehlende Felder aus alten Saves ergänzen
     if(!state.decisions.grainSell) state.decisions.grainSell=0;
     if(!state.lastGV) state.lastGV=null;
-    if(!state.popCap) state.popCap=300;
+    if(!state.popCap || state.popCap < 500) state.popCap=500;
     if(!state.housingLevel) state.housingLevel=0;
     if(state.hasWalls===undefined) state.hasWalls=false;
+    // Neue Felder für alte Saves
+    if (state.bMarkets === undefined) state.bMarkets = state.hasMarket ? 1 : 0;
+    if (state.bMills === undefined) state.bMills = state.hasGranary ? 1 : 0;
+    if (!state.decisions.vatRate) { state.decisions.vatRate = state.decisions.taxRate ? Math.min(40, Math.max(10, state.decisions.taxRate)) : 25; }
+    if (!state.decisions.incomeTaxRate) state.decisions.incomeTaxRate = 10;
+    if (!state.decisions.justice) state.decisions.justice = 'bescheiden';
+    if (state.decisions.grainDistPct === undefined) { state.decisions.grainDistPct = 50; delete state.decisions.grainDist; }
+    if (!state.year) state.year = 1701;
+    if (!state.playerName) state.playerName = 'Imperator';
+    if (!state.playerGender) state.playerGender = 'm';
+    if (!state.nobilityTitle) state.nobilityTitle = 'Baron';
+    if (!state.landPrice) state.landPrice = 70;
     document.getElementById('event-title').textContent='Spielstand geladen';
-    document.getElementById('event-text').textContent=`Willkommen zurück, Kaiser! Ihr regiert im Jahr ${state.round} von 20.`;
+    document.getElementById('event-text').textContent=`Willkommen zurück! Ihr regiert im Jahr ${state.round} von 20.`;
   }
+}
+if (!saved || saved.gameOver) {
+  document.getElementById('start-screen').style.display = 'flex';
 }
 syncSliders();
 updateUI();
