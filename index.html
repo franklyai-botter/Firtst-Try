@@ -776,7 +776,11 @@
           <div class="slider-hint" id="recruit-hint">Kosten: 75 Gold einmalig · +10 Gold Unterhalt/Rd.</div>
         </div>
         <div class="slider-hint" style="margin-bottom:6px" id="army-hint">Unterhalt gesamt: 60 Gold/Rd. · Angriffsmacht: ~45 vs. Feind: 80</div>
-        <button class="btn btn-danger" onclick="attackEnemy()">⚔ Feind angreifen</button>
+      </div>
+
+      <div class="action-section">
+        <div class="action-section-title">🗺 Diplomatie</div>
+        <div id="faction-list" style="font-size:.72rem"></div>
       </div>
 
       <div class="action-section">
@@ -894,6 +898,12 @@ function createState() {
     decisions:{taxRate:20, grainDist:150, farming:40, recruit:5, grainSell:0},
     buildings:['🏰 Burg','🌾 Felder (3)'],
     deltas:{},
+    factions: [
+      { id:'schattenlande', name:'Schattenlande', icon:'💀', relation:'enemy',   strength:85,  aggression:0.60, allianceCost:350 },
+      { id:'dunkelhain',    name:'Dunkelhain',    icon:'🐺', relation:'enemy',   strength:60,  aggression:0.40, allianceCost:250 },
+      { id:'sonnengefilde', name:'Sonnengefilde', icon:'☀️', relation:'neutral', strength:45,  aggression:0.08, allianceCost:150 },
+      { id:'eisenmark',     name:'Eisenmark',     icon:'⚒️', relation:'neutral', strength:70,  aggression:0.18, allianceCost:280 },
+    ],
   };
 }
 
@@ -1029,6 +1039,14 @@ async function endTurn() {
       state.lastGV.eventGrain = state.grain - grainBeforeEvent;
     }
 
+    // Fraktionen verarbeiten (Angriffe, Bündnishandel)
+    const factionMessages = processFactions(state);
+    if (factionMessages.length > 0) {
+      // Erstes kritisches Fraktions-Ereignis anzeigen
+      const fm = factionMessages[0];
+      if (!ev) showModal(fm.icon, fm.title, fm.text, fm.bad);
+    }
+
     state.deltas = {gold:state.gold-prev.gold, grain:state.grain-prev.grain, pop:state.population-prev.pop, sol:state.soldiers-prev.sol, land:state.land-prev.land};
     // Tatsächlichen Saldo nach allem (inkl. Events) eintragen
     state.lastGV.netGold  = state.deltas.gold;
@@ -1118,6 +1136,136 @@ function attackEnemy() {
   }
   saveState();
   updateUI();
+}
+
+// === FRAKTIONEN ===
+function processFactions(s) {
+  const messages = [];
+  const wallBonus = s.hasWalls ? 1.3 : 1.0;
+  if (!s.factions) return messages;
+
+  for (const f of s.factions) {
+    if (f.relation === 'enemy') {
+      f.strength += 2 + Math.floor(Math.random() * 5);
+      s.enemyStrength = Math.max(...s.factions.filter(x=>x.relation==='enemy').map(x=>x.strength), 30);
+    }
+    if (f.relation === 'enemy' && Math.random() < f.aggression * 0.25) {
+      const defense = Math.floor(s.soldiers * wallBonus);
+      if (defense < f.strength * 0.65) {
+        const goldLoss = Math.max(20, Math.floor(s.gold * 0.08));
+        const soldierLoss = Math.max(2, Math.floor(s.soldiers * 0.10));
+        s.gold = Math.max(0, s.gold - goldLoss);
+        s.soldiers = Math.max(0, s.soldiers - soldierLoss);
+        s.satisfaction = Math.max(0, s.satisfaction - 7);
+        messages.push({ icon: f.icon, bad: true,
+          title: `${f.name} greift an!`,
+          text: `Die Heere von ${f.name} fallen ins Land ein! ${soldierLoss} Soldaten gefallen, ${goldLoss} Gold geplündert.` });
+      } else {
+        const soldierLoss = Math.max(1, Math.floor(s.soldiers * 0.04));
+        s.soldiers = Math.max(0, s.soldiers - soldierLoss);
+        messages.push({ icon: '🛡', bad: false,
+          title: `${f.name} abgewehrt`,
+          text: `Ein Angriff von ${f.name} wurde zurückgeschlagen! ${soldierLoss} Soldaten gefallen.` });
+      }
+    }
+    if (f.relation === 'ally') {
+      s.gold += 15 + Math.floor(f.strength * 0.08);
+    }
+  }
+  return messages;
+}
+
+function attackFaction(factionId) {
+  if (state.gameOver) return;
+  const f = state.factions.find(x => x.id === factionId);
+  if (!f) return;
+  if (f.relation === 'ally') { showModal('🤝','Verbündeter!',`${f.name} ist Euer Verbündeter.`,true); return; }
+  if (state.soldiers < 15) { showModal('⚠️','Zu wenig Truppen','Mindestens 15 Soldaten nötig.',true); return; }
+  const wallBonus = state.hasWalls ? 1.2 : 1.0;
+  const atk = Math.floor(state.soldiers * wallBonus) + Math.floor(Math.random() * 25);
+  if (atk > f.strength * 0.8) {
+    const loss    = Math.max(1, Math.floor(state.soldiers * 0.12));
+    const plunder = 50 + Math.floor(f.strength * 0.5) + Math.floor(Math.random() * 40);
+    f.strength    = Math.max(15, f.strength - 30);
+    state.soldiers   = Math.max(0, state.soldiers - loss);
+    state.gold      += plunder;
+    state.land      += 1;
+    state.satisfaction = Math.min(100, state.satisfaction + 8);
+    state.buildings.push('🏴 Gebiet ' + state.land);
+    if (f.strength < 20) { f.relation = 'neutral'; f.aggression = 0.05; }
+    showModal('⚔️', `Sieg über ${f.name}!`,
+      `Euer Heer triumphiert! +${plunder} Gold · +1 Gebiet · ${loss} Soldaten gefallen.`, false);
+  } else {
+    const loss = Math.max(2, Math.floor(state.soldiers * 0.28));
+    state.soldiers   = Math.max(0, state.soldiers - loss);
+    state.satisfaction = Math.max(0, state.satisfaction - 10);
+    showModal('💀', `Niederlage gegen ${f.name}`,
+      `Zu stark. ${loss} Soldaten gefallen. Zufriedenheit −10.`, true);
+  }
+  saveState(); updateUI();
+}
+
+function formAlliance(factionId) {
+  const f = state.factions.find(x => x.id === factionId);
+  if (!f || f.relation !== 'neutral') { showModal('ℹ️','Nicht möglich','Nur neutrale Königreiche verbündbar.',false); return; }
+  if (state.gold < f.allianceCost) { showModal('💸','Zu wenig Gold',`Bündnis kostet ${f.allianceCost} Gold.`,true); return; }
+  state.gold -= f.allianceCost;
+  f.relation = 'ally'; f.aggression = 0;
+  showModal('🤝', `Bündnis mit ${f.name}`,
+    `Der Vertrag ist besiegelt! ${f.name} ist nun Euer Verbündeter und zahlt Handelsgold jede Runde.`, false);
+  saveState(); updateUI();
+}
+
+function sendTribute(factionId) {
+  const f = state.factions.find(x => x.id === factionId);
+  if (!f || f.relation === 'ally') return;
+  if (state.gold < 80) { showModal('💸','Zu wenig Gold','Tribut kostet 80 Gold.',true); return; }
+  state.gold -= 80;
+  f.aggression = Math.max(0.03, f.aggression - 0.15);
+  if (f.relation === 'enemy' && f.aggression < 0.15) f.relation = 'neutral';
+  showModal('🕊️','Tribut gesandt',
+    `${f.name} nimmt den Tribut an. Feindseligkeit sinkt.`, false);
+  saveState(); updateUI();
+}
+
+function declareWar(factionId) {
+  const f = state.factions.find(x => x.id === factionId);
+  if (!f || f.relation !== 'neutral') return;
+  f.relation = 'enemy'; f.aggression = Math.min(0.7, f.aggression + 0.3);
+  showModal('⚔️',`Krieg gegen ${f.name}!`,`Ihr habt den Krieg erklärt. Bereitet Euch auf Angriffe vor!`,true);
+  saveState(); updateUI();
+}
+
+function updateFactionUI() {
+  const container = document.getElementById('faction-list');
+  if (!container || !state.factions) return;
+  container.innerHTML = state.factions.map(f => {
+    const relColor = f.relation==='enemy' ? '#8b1a1a' : f.relation==='ally' ? '#1a5c1a' : '#5c4a1a';
+    const relLabel = f.relation==='enemy' ? '⚔️ Feind' : f.relation==='ally' ? '🤝 Verbündet' : '⚖️ Neutral';
+    const wallBonus = state.hasWalls ? 1.2 : 1.0;
+    const atkPow   = Math.floor(state.soldiers * wallBonus);
+    const winChance = atkPow > f.strength*0.8 ? '✅' : atkPow > f.strength*0.6 ? '⚠️' : '💀';
+    let buttons = '';
+    if (f.relation === 'enemy') {
+      buttons = `<button onclick="attackFaction('${f.id}')" style="margin-right:3px;padding:2px 6px;font-size:.6rem;font-family:'Cinzel',serif;background:linear-gradient(135deg,#3a0000,#6a1010);color:#f08080;border:1px solid #8b1a1a;border-radius:2px;cursor:pointer">${winChance} Angreifen</button>`
+             + `<button onclick="sendTribute('${f.id}')" style="padding:2px 6px;font-size:.6rem;font-family:'Cinzel',serif;background:rgba(139,90,30,.15);color:var(--ink-light);border:1px solid rgba(139,90,30,.3);border-radius:2px;cursor:pointer">🕊 Tribut (80G)</button>`;
+    } else if (f.relation === 'neutral') {
+      buttons = `<button onclick="formAlliance('${f.id}')" style="margin-right:3px;padding:2px 6px;font-size:.6rem;font-family:'Cinzel',serif;background:rgba(30,80,30,.3);color:#6abf6a;border:1px solid #2a5c2a;border-radius:2px;cursor:pointer">🤝 Bündnis (${f.allianceCost}G)</button>`
+             + `<button onclick="declareWar('${f.id}')" style="padding:2px 6px;font-size:.6rem;font-family:'Cinzel',serif;background:rgba(139,90,30,.15);color:var(--ink-light);border:1px solid rgba(139,90,30,.3);border-radius:2px;cursor:pointer">⚔ Krieg</button>`;
+    } else {
+      buttons = `<span style="font-size:.6rem;color:#4a9c4a;font-family:'Cinzel',serif">+${15+Math.floor(f.strength*.08)} Gold/Rd.</span>`;
+    }
+    return `<div style="padding:6px 0;border-bottom:1px solid rgba(139,90,30,.15)">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px">
+        <span style="font-size:.72rem;font-family:'Cinzel',serif;color:var(--ink)">${f.icon} ${f.name}</span>
+        <span style="font-size:.6rem;padding:1px 5px;border-radius:2px;background:${relColor}22;border:1px solid ${relColor};color:${relColor}">${relLabel}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:.6rem;color:var(--stone)">Stärke: ${f.strength}</span>
+        <div>${buttons}</div>
+      </div>
+    </div>`;
+  }).join('');
 }
 
 function buildBuilding(id) {
@@ -1280,6 +1428,8 @@ function updateUI(evTitle, evText) {
 
   // Karte: eroberte Gebiete einfärben
   updateMapRegions(s);
+  // Fraktionen
+  updateFactionUI();
 
   if(s.satisfaction<25||s.grain<100) {
     document.getElementById('left-panel').classList.add('warning-flash');
@@ -1298,7 +1448,8 @@ const ADVISOR_RULES=[
   {c:s=>s.satisfaction<25, t:'⚠️ Das Volk murrt! Eine Revolte droht!'},
   {c:s=>s.grain<200, t:'Die Kornkammern leeren sich bedrohlich schnell!'},
   {c:s=>s.gold<80, t:'Die Staatskasse ist fast leer. Steuern erhöhen!'},
-  {c:s=>s.enemyStrength>160, t:'Der Feind rüstet massiv auf. Seid gewarnt!'},
+  {c:s=>s.factions&&s.factions.some(f=>f.relation==='enemy'&&f.strength>120), t:'⚠️ Feindliche Mächte rüsten massiv auf!'},
+  {c:s=>s.factions&&s.factions.every(f=>f.relation!=='ally'), t:'Ein Bündnis würde Euch Handelsgold und Sicherheit bringen.'},
   {c:s=>s.round>16, t:`Nur noch ${21-s.round} Jahre bis Ihr in die Annalen eingeht.`},
   {c:s=>s.soldiers<15, t:'Unsere Verteidigung ist kritisch schwach!'},
   {c:s=>!s.hasMarket&&s.gold>300, t:'Ein Markt würde Eure Einnahmen erheblich steigern.'},
