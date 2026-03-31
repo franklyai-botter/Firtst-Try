@@ -816,6 +816,7 @@
       </div>
 
       <button class="btn btn-primary" onclick="endTurn()" id="btn-endturn">⏳ Runde beenden →</button>
+      <button class="btn btn-primary" onclick="if(confirm('Neues Spiel starten? Spielstand wird gelöscht.')) restartGame()" style="background:rgba(80,20,0,.7);font-size:.62rem;margin-top:4px;opacity:.7">🔄 Neues Spiel</button>
 
       <div style="margin-top:12px; padding:8px; background:rgba(139,90,30,.06); border:1px solid rgba(139,90,30,.2); border-radius:3px;">
         <div class="action-section-title" style="margin-bottom:6px">🏰 Gebäude</div>
@@ -1826,11 +1827,16 @@ if(saved){
     if (!state.decisions.justice) state.decisions.justice = 'bescheiden';
     if (state.decisions.grainDistPct === undefined) { state.decisions.grainDistPct = 50; delete state.decisions.grainDist; }
     if (!state.year) state.year = 1701;
-    if (!state.playerName) state.playerName = 'Imperator';
+    if (!state.playerName) state.playerName = '';
     if (!state.playerGender) state.playerGender = 'm';
     if (!state.nobilityTitle) state.nobilityTitle = 'Baron';
     if (!state.landPrice) state.landPrice = 70;
-    document.getElementById('start-screen').classList.remove('active');
+    // Nur überspringen wenn echter Name gesetzt (nicht Auto-Fallback)
+    if (state.playerName && state.playerName !== 'Imperator') {
+      document.getElementById('start-screen').classList.remove('active');
+    } else {
+      state.playerName = '';
+    }
     document.getElementById('event-title').textContent='Spielstand geladen';
     document.getElementById('event-text').textContent=`Willkommen zurück! Ihr regiert im Jahr ${state.round} von 20.`;
   }
