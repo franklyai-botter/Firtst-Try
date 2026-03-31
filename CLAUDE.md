@@ -150,12 +150,32 @@ Ein Feature ist **fertig** wenn:
 
 ---
 
+## 🚀 Claude Code Workflow (Projekt-spezifisch)
+
+### Git
+- Nach jedem Commit **automatisch pushen**: `git push origin master`
+- Nicht fragen, direkt ausführen
+
+### Testing mit Playwright
+- Playwright ist installiert (`@playwright/test`)
+- Nach Änderungen an `index.html`: Smoke-Test ausführen (Seite lädt? JS-Fehler?)
+- Test-Dateien in `tests/` ablegen
+
+### Startscreen-Debug
+- Startscreen erscheint nicht? → Spieler hat alten Save in localStorage
+- Lösung: Inkognito-Fenster oder `localStorage.removeItem('kaiser_save')` in der Konsole
+
+### GitHub Pages
+- URL: https://franklyai-botter.github.io/Firtst-Try/
+- Deployment nach Push: ~1 Minute warten
+
+---
+
 ## 🚫 Was Claude Code NICHT tun soll
 
 - Kein TypeScript (hält einfach, JS reicht)
 - Keine externen Bild-Dateien (alles SVG inline)
 - Kein komplexes State-Management (kein Redux etc.)
-- Keine Test-Frameworks installieren
 - API-Key niemals hardcoden – immer aus `localStorage` oder ENV
 
 ---
