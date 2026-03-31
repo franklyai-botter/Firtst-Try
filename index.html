@@ -828,7 +828,7 @@
 </div>
 
 <!-- START SCREEN -->
-<div class="modal-overlay" id="start-screen" style="display:none">
+<div class="modal-overlay active" id="start-screen">
   <div class="modal" style="max-width:420px">
     <span class="modal-icon">⚔️</span>
     <h2 style="font-family:'Cinzel Decorative',serif;color:var(--gold-bright);font-size:1.4rem;margin-bottom:8px">KAISER</h2>
@@ -1743,7 +1743,7 @@ function startNewGame() {
   const name = nameEl ? nameEl.value.trim() : '';
   if (!name) { if(nameEl) { nameEl.style.borderColor='var(--red-bright)'; nameEl.placeholder='← Name eingeben!'; } return; }
   state.playerName = name;
-  document.getElementById('start-screen').style.display = 'none';
+  document.getElementById('start-screen').classList.remove('active');
   updateUI();
 }
 
@@ -1796,7 +1796,7 @@ function restartGame() {
   localStorage.removeItem('kaiser_save');
   state=createState();
   document.getElementById('gameover-screen').classList.remove('active');
-  document.getElementById('start-screen').style.display = 'flex';
+  document.getElementById('start-screen').classList.add('active');
   document.getElementById('event-title').textContent='Neues Spiel';
   document.getElementById('event-text').textContent='Ein neues Zeitalter beginnt. Führt Euer Reich zu Ruhm und Größe!';
   syncSliders();
@@ -1828,12 +1828,10 @@ if(saved){
     if (!state.playerGender) state.playerGender = 'm';
     if (!state.nobilityTitle) state.nobilityTitle = 'Baron';
     if (!state.landPrice) state.landPrice = 70;
+    document.getElementById('start-screen').classList.remove('active');
     document.getElementById('event-title').textContent='Spielstand geladen';
     document.getElementById('event-text').textContent=`Willkommen zurück! Ihr regiert im Jahr ${state.round} von 20.`;
   }
-}
-if (!saved || saved.gameOver) {
-  document.getElementById('start-screen').style.display = 'flex';
 }
 syncSliders();
 updateUI();
