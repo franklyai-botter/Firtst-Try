@@ -1,34 +1,42 @@
 # NEURAL MANAGER – Der KI-Agentur-Manager
-## Game-Design-Plan (v0.1 – Diskussionsgrundlage)
+## Game-Design-Plan (v0.2 – Diskussionsgrundlage)
 
 > Arbeitstitel: **NEURAL MANAGER**. Ein Manager-Spiel im Stil klassischer
-> Fußballmanager – aber statt eines Fußballvereins führst du eine **KI-Agentur**:
-> Du scoutest, trainierst und verkaufst KI-Agenten, nimmst Aufträge an,
-> kämpfst dich durch Ligen nach oben und baust ein Imperium auf.
+> Fußballmanager – aber statt eines Fußballvereins führst du eine **KI-Agentur**.
 >
-> Dieses Dokument ist die Diskussionsgrundlage. Der spielbare One-Shot-Prototyp
-> liegt unter `ai-manager/index.html`. Offene Punkte für Frank stehen ganz unten.
+> **Primärzweck (seit v0.2): Kunden-Explainer.** Das Spiel erklärt Kunden
+> interaktiv, was eine KI-Agentur macht – in einer geführten Partie von
+> ~10–15 Minuten (12 Spielwochen) mit Abschlussbericht und Kontakt-CTA.
+> Der spielbare One-Shot-Prototyp liegt unter `ai-manager/index.html`.
+> Offene Punkte für Frank stehen ganz unten.
 
 ---
 
 ## 1. Vision & Elevator Pitch
 
-**„Football Manager trifft Silicon Valley."**
+**„Spiel dich durch das, was wir wirklich tun."**
 
-Du gründest eine kleine KI-Agentur in der Garage. Deine „Spieler" sind
-KI-Agenten (Modelle mit Persönlichkeit, Stärken und Macken). Deine „Spiele"
-sind Kundenaufträge und Benchmark-Wettbewerbe. Deine „Liga" ist der Markt:
-von der **Garagen-Liga** bis zur **Frontier-Liga**, in der die großen Labs
-spielen. Wer 3 Saisons schlampt, steigt ab. Wer liefert, steigt auf – mit
-größeren Kunden, teureren Agenten und härterer Konkurrenz.
+Der Kunde gründet eine kleine KI-Agentur. Seine „Spieler" sind KI-Agenten
+(Modelle mit Stärkenprofilen und Macken). Seine „Spiele" sind Kundenaufträge.
+Statt einer fiktiven Liga gibt es das, was es wirklich gibt: **einen Markt** –
+Mitbewerber schnappen sich liegengelassene Aufträge, Reputation öffnet
+größere Kundensegmente, und jede Spielmechanik wird per **💡 Insight** auf
+die echte Agentur-Arbeit gemappt („Genau so wählen wir das Modell für Ihren
+Use Case"). Nach 12 Wochen: **Abschlussbericht + CTA** („Sprechen wir über
+Ihren Use Case") – danach freies Weiterspielen.
+
+**Wichtige Design-Entscheidung (v0.2):** Keine Ligen, kein Auf-/Abstieg –
+das war Fußball-Fiktion. Stattdessen **Wirtschaftssimulation**:
+Markt-Ranking nach Umsatz, Kundensegmente mit Reputations-Schwellen,
+Konkurrenz als ökonomischer Druck (kein Zwangsabstieg).
 
 **Referenzen / Vorgehensmodell:**
 - Struktur & Rundenlogik: unser bestehendes KAISER-Spiel (Runden, Events, localStorage, One-File-SPA)
-- Ton & Branding: neuralnautic.org und Kaivera *(Anmerkung: beide Seiten waren
-  aus der Cloud-Umgebung nicht abrufbar – Farbwelt/Branding gleichen wir im
-  nächsten Schritt gemeinsam an; der Prototyp nutzt ein neutrales
-  Dark-Neural-Theme mit konfigurierbaren CSS-Variablen)*
-- Genre-Vorbilder: Football Manager (Tiefe), Anstoss (Charme), Game Dev Tycoon (Loop)
+- Ton & Branding: neuralnautic.org und Kaivera *(beide Seiten waren aus der
+  Cloud-Umgebung nicht abrufbar – Farbwelt/Branding gleichen wir gemeinsam an;
+  der Prototyp nutzt ein neutrales Dark-Neural-Theme; Agenturname & CTA-Link
+  sind im `BRAND`-Objekt am Dateianfang konfigurierbar)*
+- Genre-Vorbilder: Football Manager (Tiefe), Game Dev Tycoon (Loop), Serious Games (Didaktik)
 
 ---
 
@@ -36,58 +44,60 @@ größeren Kunden, teureren Agenten und härterer Konkurrenz.
 
 ```
 ┌────────────────────────────────────────────────────────┐
-│ 1. AUFTRÄGE sichten      → 4–6 Angebote je nach Liga   │
+│ 1. AUFTRÄGE sichten      → 4–6 Angebote je nach Segment│
 │ 2. TEAM aufstellen       → Agenten den Jobs zuweisen   │
 │ 3. TRAINING planen       → 1 Agent pro Woche (Basis)   │
-│ 4. MARKT checken         → Scouting, Kauf, Verkauf     │
+│ 4. RECRUITING checken    → Scouting, Kauf, Abgabe      │
 │ 5. INFRASTRUKTUR         → GPU-Cluster, Slots, Kosten  │
-│ 6. WOCHE SIMULIEREN      → Ergebnisse, Event, Tabelle  │
+│ 6. WOCHE SIMULIEREN      → Ergebnisse, Event, Ranking  │
 └────────────────────────────────────────────────────────┘
 ```
 
-- **Saison = 10 Spieltage** (Wochen). Danach: Auf-/Abstieg, Saisonbonus, neue Saison.
-- Ein kompletter Aufstieg von Liga 5 → Liga 1 dauert im Idealfall 4 Saisons
-  (~40 Runden) – realistisch 6–8, weil man zwischendurch Kader und
-  Infrastruktur aufbauen muss.
+- **Quartal = 4 Wochen.** Am Quartalsende: Quartalsbericht (Markt-Platz,
+  Marktanteil, Umsatz) + Segment-Check (Aufstieg bei genug Reputation).
+- **Geführte Partie = 12 Wochen (3 Quartale)** → Abschlussbericht + CTA.
+  Danach läuft das Spiel als freies Endlosspiel weiter.
 
 ---
 
 ## 3. Die Erfolgskette (Core Progression)
 
-Die zentrale Motivationsschleife – jede Stufe füttert die nächste:
-
 ```
 Auftrag gewonnen
-   → Credits + Reputation + Liga-Punkte + Agenten-XP
+   → Credits + Reputation + Agenten-XP
       → bessere Aufträge werden freigeschaltet (Rep-Gates)
          → mehr Einnahmen → besserer Kader + Infrastruktur
-            → höhere Erfolgsquote → Tabellenspitze
-               → AUFSTIEG in die nächste Liga
-                  → neue Kunden, neue Agenten-Klassen, neue Events
-                     → ... bis zum Frontier-Titel („AGI-Pokal")
+            → höhere Erfolgsquote → Reputations-Schwelle erreicht
+               → NEUES KUNDENSEGMENT erschlossen
+                  → größere Kunden, stärkere Mitbewerber, neue Events
+                     → ... bis Forschung & Frontier
 ```
 
-**Verzahnung nach unten:** Misserfolge kosten Reputation und Moral, Pleiten
-kosten Agenten (Abwerbung), 2 Wochen zahlungsunfähig = Insolvenz (Game Over).
+**Verzahnung nach unten:** Misserfolge kosten Reputation und Moral,
+liegengelassene Aufträge füttern die Konkurrenz, 2 Wochen zahlungsunfähig
+= Insolvenz (Game Over).
 
 ---
 
-## 4. Ligen & Aufstieg
+## 4. Markt, Kundensegmente & Ranking (statt Ligen)
 
-| Tier | Liga | Teams | Auftragsniveau | Beispiel-Kunden |
-|------|------|-------|----------------|-----------------|
-| 5 | **Garagen-Liga** | 8 | Websites, Chatbots | Pizzeria, Handwerker |
-| 4 | **Startup-Liga** | 8 | Automatisierung, Apps | Startups, Agenturen |
-| 3 | **Growth-Liga** | 8 | Datenpipelines, Fintech | Mittelstand |
-| 2 | **Enterprise-Liga** | 8 | Konzern-Projekte | DAX, Behörden |
-| 1 | **Frontier-Liga** | 8 | Forschung, Benchmarks | Big Tech, Labs |
+| Segment | Rep-Schwelle | Auftragsniveau | Beispiel-Kunden |
+|---------|--------------|----------------|-----------------|
+| **Lokale Kunden** | Start | Websites, Chatbots | Pizzeria, Handwerker |
+| **Startups** | 32 | Automatisierung, Apps | FinTech, EdTech |
+| **Mittelstand** | 50 | Datenpipelines, Analysen | Maschinenbau, Logistik |
+| **Enterprise** | 68 | Konzern-Projekte | DAX, Behörden |
+| **Forschung & Frontier** | 85 | Forschung, Benchmarks | Labs, Raumfahrt |
 
-- **Punkte:** Jeder Auftrag hat einen Liga-Punktwert (1–4). Konkurrenten
-  erspielen ihre Punkte simuliert (Stärkerating + Zufall).
-- **Saisonende:** Platz 1–2 steigen auf, Platz 7–8 steigen ab.
-- **Meisterschaft:** Platz 1 gibt Prämie + Trophäe. Frontier-Meister = Endgame-Ziel.
-- Höhere Ligen: höhere Fixkosten (Büro, Compliance), teurere Gehälter,
-  aber deutlich fettere Aufträge.
+- **Markt-Ranking:** Tabelle nach **Quartalsumsatz** (du + 7 simulierte
+  Mitbewerber), inkl. Marktanteil in %. Rein informativ + Motivations-Anker.
+- **Konkurrenzdruck statt Abstieg:** Aufträge, die du nicht annimmst,
+  gehen sichtbar an Mitbewerber. Es gibt keinen Zwangsabstieg – nur
+  wirtschaftliche Konsequenzen (weniger Umsatz, Insolvenzrisiko).
+- **Segment-Aufstieg** über Reputations-Schwellen am Quartalsende –
+  Referenzen öffnen größere Kunden (so funktioniert der Markt wirklich).
+- **Optional (Phase 3):** Benchmark-Wettbewerbe als reales Ranking-Element
+  der KI-Branche (Leaderboards existieren ja tatsächlich).
 
 ---
 
@@ -101,68 +111,60 @@ kosten Agenten (Abwerbung), 2 Wochen zahlungsunfähig = Insolvenz (Game Over).
 | **Code** | Entwicklungs- und Automatisierungs-Aufträge |
 | **Wissen** | Recherche-, Beratungs-Aufträge |
 | **Tempo** | Deadline-Boni, Multi-Auftrag-Fähigkeit (später) |
-| **Stabilität** | Fehler-/Katastrophenrisiko senken |
+| **Stabilität** | Fehler-/Desaster-Risiko senken |
 
 ### 5.2 Archetypen (= Positionen)
-- **Generalist** (ausgewogen), **Code-Spezialist**, **Kreativ-Modell**,
-  **Daten-Analyst**, **Rechercheur**
+- **Generalist**, **Code-Spezialist**, **Kreativ-Modell**, **Daten-Analyst**, **Rechercheur**
 - Passt der Archetyp zur Auftragskategorie → **Synergie-Bonus**.
+- *Didaktik: entspricht der realen Modell-/Tool-Auswahl pro Use Case.*
 
 ### 5.3 Zustand & Persönlichkeit
 - **Level 1–30 + XP:** Level-Up = Attributspunkte (Schwerpunkt je Archetyp)
-- **Zustand (Kondition):** Arbeiten −, Pause +. Unter 30 % droht **Überhitzung**
-  (Ausfall 1–2 Wochen) – das Pendant zur Verletzung im Fußballmanager.
+- **Zustand:** Arbeiten −, Pause +. Unter 30 % droht **Überhitzung** (Ausfall 1–2 Wochen)
 - **Moral:** Siege +, Pleiten −, Events ±. Wirkt direkt auf Leistung.
-- **Traits** (je 1 pro Agent): z. B. *Workaholic* (Zustand sinkt langsamer),
-  *Diva* (Moral schwankt stark), *Halluzinator* (kleines Katastrophenrisiko,
-  dafür billig), *Präzise* (+Stabilität), *Wunderkind* (schnellere XP)
-- **Gehalt & Marktwert:** Marktwert steigt mit Level/Erfolgen → Verkaufserlöse.
+- **Traits:** *Workaholic*, *Diva*, *Halluzinator*, *Präzise*, *Wunderkind*, *Effizient*
+- **Gehalt & Marktwert:** Marktwert steigt mit Level/Erfolgen.
 
 ---
 
 ## 6. Manager-Progression (dein eigenes Level)
 
-Du selbst sammelst **Manager-XP** (Wochen, Erfolge, Titel) und steigst im
-Level auf. Jedes Level gibt **1 Skillpunkt** für den Skilltree:
+Manager-XP durch Wochen, Erfolge und Segment-Aufstiege. Jedes Level = 1 Skillpunkt:
 
 | Skill | Effekt pro Stufe (max. 5) |
 |-------|---------------------------|
-| **Scouting** | Bessere Agenten im Markt, mehr Angebote |
+| **Scouting** | Bessere Agenten im Recruiting, mehr Angebote |
 | **Trainingslehre** | +Trainingseffekt, ab Stufe 3: 2. Trainingsslot |
 | **Verhandlung** | +% Auftragsvergütung, −% Kaufpreise |
-| **Finanzen** | −% Fixkosten, Kreditlinie ohne Strafzins |
-
-→ Klassisches „Ich werde als Manager besser, nicht nur mein Kader"-Gefühl.
+| **Finanzen** | −% Fixkosten |
 
 ---
 
 ## 7. Wirtschaft
 
-- **Credits** = Währung. Einnahmen: Aufträge, Verkäufe, Prämien, Sponsoren (später).
-- **Ausgaben:** Gehälter (wöchentlich), Energie (Compute-Level × Faktor),
-  Büro/Liga-Fixkosten, Training, Transfers, Upgrades.
-- **Reputation (0–100):** schaltet Auftragsqualität frei, wirkt auf
-  Sponsoren/Investoren-Events. Sinkt bei Katastrophen.
-- **Compute (GPU-Cluster Stufe 1–5):** bestimmt **Arbeits-Slots**
-  (wie viele Agenten pro Woche eingesetzt werden können). Upgrade = teuer,
-  laufende Energiekosten steigen. Der „Stadionausbau" des Spiels.
+- **Credits** = Währung. Einnahmen: Aufträge, Agenten-Verkäufe.
+- **Ausgaben:** Gehälter, Energie (Compute-Stufe × Faktor), Bürokosten
+  (Segment), Training, Recruiting, Cluster-Ausbau.
+- **Reputation (0–100):** schaltet Auftragsqualität und Segmente frei.
+- **Compute (GPU-Cluster 1–5):** bestimmt Arbeits-Slots. *Didaktik:
+  Infrastruktur-Dimensionierung.*
 - **Insolvenzregel:** Credits < 0 am Wochenende → Mahnung; 2× in Folge → Game Over.
 
 ---
 
-## 8. Aufträge & Simulation
+## 8. Didaktik-Ebene (der Explainer-Kern)
 
-- Pro Woche 4–6 generierte Angebote (Kategorie, Schwierigkeit, Anforderungsprofil
-  aus 2–3 Attributen, Vergütung, Rep, Liga-Punkte).
-- Bis zu **3 Agenten pro Auftrag**. Teamstärke = gewichtete Attributsumme
-  × Zustand × Moral × Synergie.
-- **Erfolgschance** = 50 + (Teamstärke − Schwierigkeit) × Faktor, geklemmt auf 5–95 %.
-- Vier Ausgänge: **Glanzleistung** (Bonus), **Erfolg**, **Fehlschlag**
-  (halbe Rep-Strafe), **Desaster** (Rep-Verlust, Vertragsstrafe) –
-  Stabilität senkt das Desaster-Risiko.
-- **Events:** 1 Zufallsereignis pro Woche (GPU-Ausfall, Hype-Welle,
-  Abwerbeversuch mit Entscheidung, Open-Source-Durchbruch, Strompreise, …).
-  Später: dynamische Eventtexte über die Claude API (wie bei KAISER geplant).
+1. **💡 Insights:** Beim ersten Auftreten einer Mechanik erscheint einmalig
+   eine Erklärung, was sie in der echten Arbeit bedeutet:
+   - Agenten-Zuweisung → Modell-/Tool-Auswahl pro Use Case
+   - Training → Fine-Tuning, Prompt-Engineering, Evaluation
+   - Desaster → Qualitätssicherung, Human-in-the-Loop
+   - Cluster-Ausbau → Infrastruktur & Kosten dimensionieren
+2. **Abschlussbericht (Woche 12):** Ergebnis-KPIs + Mapping-Liste
+   („Und genau das machen wir wirklich") + **CTA-Button** (konfigurierbar
+   über `BRAND.ctaUrl`) + Option „Weiterspielen (freies Spiel)".
+3. **Events** transportieren Branchenrealität (GPU-Ausfall, Abwerbeversuch,
+   Investor, Strompreise …). Später: dynamische Texte via Claude API.
 
 ---
 
@@ -170,22 +172,21 @@ Level auf. Jedes Level gibt **1 Skillpunkt** für den Skilltree:
 
 ```
 ┌──────────────────────────────────────────────────────────┐
-│ HEADER: Logo · Liga-Badge · S1/W3 · Credits · Rep ·      │
-│         Compute · Manager-Level (XP-Bar) · ▶ WOCHE SIM   │
+│ HEADER: Logo · Segment-Badge · Woche x/12 · Quartal ·    │
+│         Credits · Rep · Slots · Manager-Lv · ▶ WOCHE SIM │
 ├──────────────────────────────────────────────────────────┤
-│ TABS: Zentrale │ Aufträge │ Team │ Training │ Markt │Liga│
+│ TABS: Zentrale │ Aufträge │ Team & Training │            │
+│       Recruiting │ Markt & Ranking                       │
 ├──────────────────────────────────────────────────────────┤
-│  [Tab-Inhalt: Karten-Layout, dunkles Neural-Theme]       │
+│  [Karten-Layout, dunkles Neural-Theme]                   │
 └──────────────────────────────────────────────────────────┘
-+ Wochenreport-Modal, Event-Modals mit Entscheidungen,
-+ Saisonende-Screen (Auf-/Abstieg), Game-Over-Screen
++ Wochenreport, 💡-Insights, Event-Modals mit Entscheidungen,
++ Quartalsbericht, Abschlussbericht mit CTA, Game-Over-Screen
 ```
 
-**Theme (v0.1, austauschbar über CSS-Variablen):** Dark Navy `#0b1020`,
-Panel `#141b31`, Akzent Cyan `#22d3ee`, Sekundär Violett `#a78bfa`,
-Erfolg `#34d399`, Gefahr `#f87171`. Fonts: Space Grotesk / Inter (mit
-System-Fallback). Alles SVG/CSS, keine Bild-Dateien – Bilder rüsten wir
-nach, sobald wir sie konfigurieren.
+**Theme (austauschbar über CSS-Variablen):** Dark Navy `#0b1020`,
+Panel `#141b31`, Akzent Cyan `#22d3ee`, Sekundär Violett `#a78bfa`.
+Fonts: Space Grotesk / IBM Plex Mono (mit System-Fallback). Alles SVG/CSS.
 
 ---
 
@@ -194,12 +195,10 @@ nach, sobald wir sie konfigurieren.
 - **One-Shot:** eine einzige `ai-manager/index.html` – Vanilla JS, kein Build,
   läuft per Doppelklick und via GitHub Pages
   (`https://franklyai-botter.github.io/Firtst-Try/ai-manager/`).
-- **State:** ein zentrales `state`-Objekt, `localStorage`-Key `aimanager_save`
-  (Autosave nach jeder Woche).
-- **Tests:** Playwright-Smoke-Test in `tests/ai-manager.spec.js`
-  (lädt Seite, gründet Agentur, simuliert Woche, prüft auf JS-Fehler).
-- **Später (Phase 3+):** Aufteilung in Module wie bei KAISER
-  (`state/engine/events/ai/storage`), Claude API für Event-Texte.
+- **Konfiguration:** `BRAND`-Objekt (Agenturname, CTA-Text, CTA-URL) und
+  CSS-Variablen am Dateianfang – fürs Einbetten auf der Agentur-Webseite.
+- **State:** zentrales `state`-Objekt, `localStorage`-Key `aimanager_save_v2`.
+- **Tests:** Playwright-Smoke-Tests in `tests/ai-manager.spec.js`.
 
 ---
 
@@ -207,24 +206,27 @@ nach, sobald wir sie konfigurieren.
 
 | Phase | Inhalt | Status |
 |-------|--------|--------|
-| **1 – One-Shot** | Spielbarer Prototyp: Loop, Ligen, Agenten, Markt, Training, Events, Save | ✅ liegt bei |
-| **2 – Feintuning** | Balancing, Branding (deine Farben/Logos), mehr Events, Trait-Ausbau | offen |
-| **3 – Tiefe** | Sponsoren, Verträge mit Laufzeit, Benchmark-Pokal (Cup-Modus), Agent-Historie | offen |
+| **1 – One-Shot** | Spielbarer Prototyp: Markt-Loop, Segmente, Agenten, Recruiting, Training, Events, Insights, Abschlussbericht + CTA, Save | ✅ liegt bei |
+| **2 – Branding & Feintuning** | Farben/Logo der Agentur, CTA-Ziel, Texte (Sie/Du), Balancing, mehr Events | offen |
+| **3 – Tiefe** | Benchmark-Wettbewerbe, Verträge mit Laufzeit, Sponsoren/Investoren-Strang, Agent-Historie | offen |
 | **4 – KI-Events** | Claude API für dynamische Event-/Kundentexte (wie KAISER) | offen |
-| **5 – Bilder/Polish** | Agenten-Avatare, Liga-Logos, Sound, Mobile-Feinschliff | offen |
+| **5 – Bilder/Polish** | Agenten-Avatare, Sound, Mobile-Feinschliff, Analytics (Spielt jemand bis zum CTA?) | offen |
 
 ---
 
 ## 12. Offene Fragen an Frank (gehen wir gemeinsam durch)
 
-1. **Branding:** Schick mir Farben/Screenshots von neuralnautic.org & Kaivera
-   (aus der Cloud-Umgebung nicht erreichbar) – dann ziehe ich das Theme um.
-2. **Ton:** Eher ernst/clean (SaaS-Look) oder augenzwinkernd/satirisch
-   (Silicon-Valley-Parodie)? Der Prototyp ist aktuell „clean mit Augenzwinkern".
-3. **Saisonlänge:** 10 Wochen pro Saison okay, oder lieber 14–16 für mehr Tiefe?
-4. **Schwierigkeit:** Insolvenz als hartes Game Over behalten oder
-   „Investor rettet dich einmalig gegen Anteile"?
-5. **Agenten-Namen:** Frei erfunden (aktuell) oder Anspielungen auf echte
-   Modelle/Firmen (Parodie-Namen)?
-6. **Cup-Wettbewerb** (Benchmark-Pokal quer durch alle Ligen) schon in Phase 2?
-7. **Sprache:** Alles Deutsch (aktuell) oder zweisprachig DE/EN?
+1. **Branding:** Farben/Logo/Screenshots von neuralnautic.org & Kaivera
+   (aus der Cloud-Umgebung nicht erreichbar) → dann ziehe ich das Theme um.
+2. **CTA-Ziel:** Wohin soll der Abschluss-Button führen? (Kontaktformular,
+   Calendly, Mail?) Aktuell Platzhalter `https://neuralnautic.org`.
+3. **Ansprache:** Aktuell „Du" (Spiel-Konvention). Für Enterprise-Kunden
+   lieber „Sie"? Betrifft alle UI-Texte.
+4. **Spieldauer:** 12 Wochen ≈ 10–15 Min. Kürzer (8) für Messen/Landingpage
+   oder länger (16) für mehr Tiefe?
+5. **Einbettung:** Eigene Unterseite, iFrame auf der Agentur-Seite, oder
+   Standalone-Link zum Verschicken?
+6. **Insolvenz:** Für einen Kunden-Explainer evtl. zu frustrierend –
+   stattdessen „Investor rettet dich einmalig"?
+7. **Agenten-Namen:** Frei erfunden (aktuell) oder auf eure echten
+   Services/Produkte gemappt?

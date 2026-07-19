@@ -163,7 +163,7 @@ td.num,th.num{text-align:right;font-family:var(--mono)}
 <div id="start-screen">
   <div class="start-card">
     <div class="logo"><span class="n1">NEURAL</span> <span class="n2">MANAGER</span></div>
-    <div class="tagline">Gründe deine KI-Agentur. Trainiere deine Agenten.<br>Kämpf dich von der Garagen-Liga bis an die Frontier.</div>
+    <div class="tagline">Erlebe, wie eine KI-Agentur arbeitet: Gründe dein Team aus KI-Agenten<br>und mach in 12 Wochen aus kleinen Use Cases große Projekte.</div>
     <label for="inp-company">Name deiner Agentur</label>
     <input id="inp-company" maxlength="24" placeholder="z. B. NeuralNautic Labs">
     <label for="inp-manager">Dein Name (Manager)</label>
@@ -199,8 +199,8 @@ td.num,th.num{text-align:right;font-family:var(--mono)}
   <button data-tab="zentrale" class="active" onclick="showTab('zentrale')">Zentrale</button>
   <button data-tab="auftraege" onclick="showTab('auftraege')">Aufträge</button>
   <button data-tab="team" onclick="showTab('team')">Team &amp; Training</button>
-  <button data-tab="markt" onclick="showTab('markt')">Transfermarkt</button>
-  <button data-tab="liga" onclick="showTab('liga')">Liga</button>
+  <button data-tab="markt" onclick="showTab('markt')">Recruiting</button>
+  <button data-tab="liga" onclick="showTab('liga')">Markt &amp; Ranking</button>
 </nav>
 
 <main>
@@ -225,18 +225,35 @@ td.num,th.num{text-align:right;font-family:var(--mono)}
    ===================================================================== */
 
 /* ---------------- Konfiguration ---------------- */
-const SAVE_KEY = 'aimanager_save';
-const SEASON_LEN = 10;
+const SAVE_KEY = 'aimanager_save_v2';
+const DEMO_WEEKS = 12;   // geführte Partie bis zum Abschlussbericht (~10-15 Min)
+const QUARTER_LEN = 4;   // Wochen pro Quartal (Quartalsbericht + Segment-Check)
+
+/* Branding/CTA – hier anpassen, wenn das Spiel auf der Agentur-Webseite läuft */
+const BRAND = {
+  agency: 'NeuralNautic',
+  ctaText: 'Sprechen wir über Ihren Use Case',
+  ctaUrl: 'https://neuralnautic.org',
+};
 
 const STATS = { logic:'Logik', creativity:'Kreativität', code:'Code', knowledge:'Wissen', speed:'Tempo', stability:'Stabilität' };
 
-const LEAGUES = [
-  { name:'Garagen-Liga',    diff:32, reward:1.0, fixcost:120,  power:[18,42] },
-  { name:'Startup-Liga',    diff:46, reward:1.8, fixcost:320,  power:[34,58] },
-  { name:'Growth-Liga',     diff:60, reward:3.2, fixcost:750,  power:[48,72] },
-  { name:'Enterprise-Liga', diff:74, reward:5.5, fixcost:1600, power:[62,86] },
-  { name:'Frontier-Liga',   diff:88, reward:9.0, fixcost:3200, power:[78,99] },
+/* Kundensegmente: Aufstieg über Reputations-Schwellen (repGate), kein Abstieg */
+const SEGMENTS = [
+  { name:'Lokale Kunden',        diff:32, reward:1.0, fixcost:120,  power:[18,42], repGate:0 },
+  { name:'Startups',             diff:46, reward:1.8, fixcost:320,  power:[34,58], repGate:32 },
+  { name:'Mittelstand',          diff:60, reward:3.2, fixcost:750,  power:[48,72], repGate:50 },
+  { name:'Enterprise',           diff:74, reward:5.5, fixcost:1600, power:[62,86], repGate:68 },
+  { name:'Forschung & Frontier', diff:88, reward:9.0, fixcost:3200, power:[78,99], repGate:85 },
 ];
+
+/* Didaktik: Jede Mechanik erklärt einmalig, was sie in der echten Agentur-Arbeit bedeutet */
+const INSIGHTS = {
+  sim:      'Du hast Agenten nach ihrem Stärkenprofil auf Aufgaben verteilt – in echt heißt das: Für jeden Use Case wählen wir das passende Modell bzw. den passenden Agenten.',
+  training: 'Training kostet erst Geld und Zeit – und liefert dann Qualität. In echt: Fine-Tuning, Prompt-Engineering und saubere Evaluation.',
+  disaster: 'Ein Projekt ist gekippt. Genau darum bauen wir Qualitätssicherung, Tests und menschliche Freigaben (Human-in-the-Loop) ein.',
+  upgrade:  'Mehr Rechenleistung erlaubt mehr parallele Projekte, kostet aber laufend. Infrastruktur wird deshalb genau auf den Bedarf dimensioniert.',
+};
 
 const CATS = {
   code:      { label:'Entwicklung', primary:'code',      secondary:'logic' },
@@ -341,7 +358,7 @@ let uid=1;
 function makeAgent(tier, qualityBonus=0){
   const arch=pick(ARCHETYPES);
   const trait=pick(TRAITS);
-  const L=LEAGUES[tier];
+  const L=SEGMENTS[tier];
   const base=Math.round((L.power[0]+L.power[1])/2)-8+qualityBonus;
   const stats={};
   for(const k of Object.keys(STATS)){
@@ -369,20 +386,20 @@ function removeAgent(s,id){
 }
 
 function makeContract(s){
-  const tier=s.tier, L=LEAGUES[tier];
+  const tier=s.tier, L=SEGMENTS[tier];
   const catKey=pick(Object.keys(CATS));
   const cat=CATS[catKey];
   const kind=Math.random();
-  let diff,lp,label;
-  if(kind<0.4){ diff=L.diff+rnd(-12,-4); lp=1; label='Leicht'; }
-  else if(kind<0.75){ diff=L.diff+rnd(-3,5); lp=2; label='Mittel'; }
-  else if(kind<0.93){ diff=L.diff+rnd(6,14); lp=3; label='Schwer'; }
-  else { diff=L.diff+rnd(15,24); lp=4; label='Elite'; }
+  let diff,repGain,label;
+  if(kind<0.4){ diff=L.diff+rnd(-12,-4); repGain=1; label='Leicht'; }
+  else if(kind<0.75){ diff=L.diff+rnd(-3,5); repGain=2; label='Mittel'; }
+  else if(kind<0.93){ diff=L.diff+rnd(6,14); repGain=3; label='Schwer'; }
+  else { diff=L.diff+rnd(15,24); repGain=4; label='Elite'; }
   const negoBonus=1+0.04*(s.skills.verhandlung||0);
   const reward=Math.round(diff*17*L.reward*(0.9+Math.random()*0.3)*negoBonus);
   return {
     id:uid++, title:pick(JOB_TITLES[catKey]), client:pick(CLIENTS[tier]),
-    cat:catKey, diff, lp, label, reward, rep:lp, assigned:[],
+    cat:catKey, diff, label, reward, rep:repGain, assigned:[],
   };
 }
 function refreshContracts(s){
@@ -399,29 +416,30 @@ function refreshMarket(s){
   }
 }
 function makeRivals(tier){
-  const L=LEAGUES[tier];
+  const L=SEGMENTS[tier];
   const names=[...RIVAL_NAMES].sort(()=>Math.random()-0.5).slice(0,7);
-  return names.map(n=>({ name:n, power:rnd(L.power[0],L.power[1]), pts:0 }));
+  return names.map(n=>({ name:n, power:rnd(L.power[0],L.power[1]), qRev:0 }));
 }
 
 /* ---------------- Spielstart ---------------- */
 function newState(company,manager){
   const s={
-    company, manager, season:1, week:1, tier:0,
+    company, manager, week:1, tier:0,
     credits:6000, rep:20, compute:1,
     mgrLevel:1, mgrXp:0, skillPoints:0,
     skills:{scouting:0,training:0,verhandlung:0,finanzen:0},
     agents:[], contracts:[], market:[], rivals:makeRivals(0),
-    myPts:0, training:null, training2:null,
+    qRevenue:0, totalRevenue:0, projectsDone:0, projectsFailed:0,
+    training:null, training2:null,
     insolvencyWarnings:0, buffReward:1, log:[],
-    trophies:[],
+    trophies:[], insights:{}, demoDone:false,
   };
   for(let i=0;i<3;i++) s.agents.push(makeAgent(0, i===0?6:0));
   refreshContracts(s); refreshMarket(s);
-  addLog(s,'ev','Willkommen, '+manager+'! '+company+' startet in der Garagen-Liga. Weise Agenten den Aufträgen zu und simuliere die Woche.');
+  addLog(s,'ev','Willkommen, '+manager+'! '+company+' startet im Segment „Lokale Kunden“. Weise Agenten den Aufträgen zu und simuliere die Woche – nach 12 Wochen gibt es den Abschlussbericht.');
   return s;
 }
-function addLog(s,type,msg){ s.log.unshift({type,msg,w:'S'+s.season+'/W'+s.week}); s.log=s.log.slice(0,40); }
+function addLog(s,type,msg){ s.log.unshift({type,msg,w:'W'+s.week}); s.log=s.log.slice(0,40); }
 
 /* ---------------- Slots / Zuweisung ---------------- */
 function workSlots(s){ return 2+s.compute; }
@@ -493,7 +511,7 @@ function addMgrXp(s,amount){
 /* ---------------- Wochensimulation ---------------- */
 function simulateWeek(){
   const s=state;
-  const report={results:[],fin:[],event:null,eventChoice:null,league:'',season:null,gameover:false};
+  const report={results:[],fin:[],event:null,quarter:null,final:false,gameover:false,didWork:false,hadTraining:false,hadDisaster:false};
   let income=0, expense=0;
   s.week_extra_cost=0;
 
@@ -506,22 +524,26 @@ function simulateWeek(){
     let disasterRisk=10;
     for(const a of agents){ const t=agentTrait(a); disasterRisk+=(t.disaster||0); disasterRisk-=a.stats.stability*0.06; }
     disasterRisk=clamp(disasterRisk,2,30);
-    let outcome, gain=0, repGain=0, lp=0;
+    let outcome, gain=0, repGain=0;
+    report.didWork=true;
     if(roll<chance){
       const crit=Math.random()*100<18;
       outcome=crit?'crit':'ok';
       gain=Math.round(c.reward*(crit?1.4:1)*s.buffReward);
-      repGain=c.rep+(crit?2:0); lp=c.lp;
+      repGain=c.rep+(crit?2:0);
       income+=gain;
-      s.rep=clamp(s.rep+repGain,0,100); s.myPts+=lp;
+      s.rep=clamp(s.rep+repGain,0,100);
+      s.qRevenue+=gain; s.totalRevenue+=gain; s.projectsDone++;
       agents.forEach(a=>{ addAgentXp(s,a,c.diff*(crit?1.5:1.2)); a.morale=clamp(a.morale+(agentTrait(a).moraleMult||1)*4,0,100); });
       addMgrXp(s,15+(crit?25:0));
-      report.results.push({cls:outcome, txt:(crit?'🌟 Glanzleistung':'✅ Erfolg')+' – „'+c.title+'“ ('+c.client+'): +'+fmt(gain)+' ¢, +'+repGain+' Rep, +'+lp+' Punkte'});
+      report.results.push({cls:outcome, txt:(crit?'🌟 Glanzleistung':'✅ Erfolg')+' – „'+c.title+'“ ('+c.client+'): +'+fmt(gain)+' ¢, +'+repGain+' Rep'});
       addLog(s,'good',(crit?'🌟 ':'✅ ')+c.title+' erfolgreich (+'+fmt(gain)+' ¢)');
     } else {
       const dis=Math.random()*100<disasterRisk;
       outcome=dis?'dis':'fail';
+      s.projectsFailed++;
       if(dis){
+        report.hadDisaster=true;
         const penalty=Math.round(c.reward*0.2);
         expense+=penalty; s.rep=clamp(s.rep-6,0,100);
         report.results.push({cls:'dis', txt:'💥 Desaster – „'+c.title+'“: Vertragsstrafe −'+fmt(penalty)+' ¢, −6 Rep'});
@@ -534,7 +556,12 @@ function simulateWeek(){
       agents.forEach(a=>{ addAgentXp(s,a,c.diff*0.6); a.morale=clamp(a.morale-(agentTrait(a).moraleMult||1)*(outcome==='dis'?12:7),0,100); });
     }
   }
-  if(report.results.length===0) report.results.push({cls:'fail',txt:'Keine Aufträge bearbeitet – die Konkurrenz schläft nicht!'});
+  /* Nicht angenommene Aufträge gehen an die Konkurrenz – so funktioniert der Markt */
+  let lost=0, lostRev=0;
+  for(const c of s.contracts){
+    if(c.assigned.length===0){ const r=pick(s.rivals); r.qRev+=c.reward; lost++; lostRev+=c.reward; }
+  }
+  if(lost>0) report.results.push({cls:'fail', txt:'🏃 '+lost+' Auftrag'+(lost>1?'e':'')+' ('+fmt(lostRev)+' ¢) gingen an die Konkurrenz – der Markt wartet nicht.'});
   s.buffReward=1;
 
   /* 2) Training */
@@ -546,6 +573,7 @@ function simulateWeek(){
       a.stats[tr.stat]=clamp(a.stats[tr.stat]+gain,1,100);
       a.cond=clamp(a.cond-15,0,100);
       addAgentXp(s,a,25);
+      report.hadTraining=true;
       report.results.push({cls:'ok',txt:'🏋️ Training: '+a.name+' +'+gain+' '+STATS[tr.stat]});
     }
   }
@@ -574,20 +602,20 @@ function simulateWeek(){
   const salaries=s.agents.reduce((n,a)=>n+a.salary,0);
   const energy=s.compute*80;
   const finSkill=1-0.06*(s.skills.finanzen||0);
-  const fixcost=Math.round(LEAGUES[s.tier].fixcost*finSkill);
+  const fixcost=Math.round(SEGMENTS[s.tier].fixcost*finSkill);
   expense+=salaries+energy+fixcost;
   s.credits+=income-expense;
   report.fin.push(['Auftragseinnahmen','+'+fmt(income)]);
   report.fin.push(['Gehälter','−'+fmt(salaries)]);
   report.fin.push(['Energie (Cluster St. '+s.compute+')','−'+fmt(energy)]);
-  report.fin.push(['Fixkosten ('+LEAGUES[s.tier].name+')','−'+fmt(fixcost)]);
+  report.fin.push(['Bürokosten (Segment '+SEGMENTS[s.tier].name+')','−'+fmt(fixcost)]);
   if(s.week_extra_cost) report.fin.push(['Sonderkosten (Event)','−'+fmt(s.week_extra_cost)]);
   report.fin.push(['Bilanz',(income-expense>=0?'+':'−')+fmt(Math.abs(income-expense))]);
 
-  /* 5) Rivalen-Punkte */
+  /* 5) Umsatz der Mitbewerber (simuliert) */
+  const Lg=SEGMENTS[s.tier];
   for(const r of s.rivals){
-    const p=clamp(Math.round(r.power/25+(Math.random()-0.45)*3),0,6);
-    r.pts+=p;
+    r.qRev+=Math.round(r.power*25*(0.55+Math.random()*0.9)*Lg.reward);
   }
 
   /* 6) Event */
@@ -605,10 +633,12 @@ function simulateWeek(){
     else report.fin.push(['⚠ MAHNUNG','Konto im Minus! Noch 1 Woche bis zur Insolvenz.']);
   } else s.insolvencyWarnings=0;
 
-  /* 9) Saisonende / neue Woche */
+  /* 9) Quartalsende / Abschlussbericht */
   s.week++;
-  if(s.week>SEASON_LEN&&!report.gameover){
-    report.season=endSeason(s);
+  const finishedWeek=s.week-1;
+  if(!report.gameover){
+    if(finishedWeek%QUARTER_LEN===0) report.quarter=endQuarter(s);
+    if(finishedWeek===DEMO_WEEKS&&!s.demoDone){ s.demoDone=true; report.final=true; }
   }
 
   /* 10) Neue Angebote */
@@ -617,29 +647,30 @@ function simulateWeek(){
   showWeekReport(report);
 }
 
-function leagueTable(s){
-  const rows=s.rivals.map(r=>({name:r.name,pts:r.pts,me:false,power:r.power}));
-  rows.push({name:s.company,pts:s.myPts,me:true});
-  rows.sort((a,b)=>b.pts-a.pts);
+function marketTable(s){
+  const rows=s.rivals.map(r=>({name:r.name,rev:r.qRev,me:false}));
+  rows.push({name:s.company,rev:s.qRevenue,me:true});
+  rows.sort((a,b)=>b.rev-a.rev);
   return rows;
 }
 
-function endSeason(s){
-  const table=leagueTable(s);
+function endQuarter(s){
+  const table=marketTable(s);
   const pos=table.findIndex(r=>r.me)+1;
-  const L=LEAGUES[s.tier];
-  const out={pos, league:L.name, moved:0, bonus:0, champion:false};
-  if(pos===1){
-    out.champion=true;
-    out.bonus=Math.round(1200*L.reward);
-    s.credits+=out.bonus;
-    s.trophies.push('🏆 Meister '+L.name+' (Saison '+s.season+')');
-    addMgrXp(s,150);
-    addLog(s,'good','🏆 MEISTER der '+L.name+'!');
+  const total=table.reduce((n,r)=>n+r.rev,0)||1;
+  const q=Math.floor((s.week-2)/QUARTER_LEN)+1;
+  const out={q, pos, share:Math.round(100*s.qRevenue/total), rev:s.qRevenue, promoted:false, segment:SEGMENTS[s.tier].name};
+  const next=SEGMENTS[s.tier+1];
+  if(next&&s.rep>=next.repGate){
+    s.tier++; out.promoted=true; out.segment=SEGMENTS[s.tier].name;
+    s.trophies.push('🚀 Aufstieg ins Segment „'+SEGMENTS[s.tier].name+'“ (Woche '+(s.week-1)+')');
+    s.rivals=makeRivals(s.tier);
+    addMgrXp(s,200);
+    addLog(s,'good','🚀 Neues Kundensegment erschlossen: '+SEGMENTS[s.tier].name+'!');
   }
-  if(pos<=2&&s.tier<LEAGUES.length-1){ out.moved=1; s.tier++; s.rep=clamp(s.rep+5,0,100); addMgrXp(s,200); addLog(s,'good','⬆ AUFSTIEG in die '+LEAGUES[s.tier].name+'!'); }
-  else if(pos>=table.length-1&&s.tier>0){ out.moved=-1; s.tier--; s.rep=clamp(s.rep-3,0,100); addLog(s,'bad','⬇ Abstieg in die '+LEAGUES[s.tier].name+'.'); }
-  s.season++; s.week=1; s.myPts=0; s.rivals=makeRivals(s.tier);
+  s.rivals.forEach(r=>r.qRev=0);
+  s.qRevenue=0;
+  addMgrXp(s,50);
   return out;
 }
 
@@ -694,6 +725,11 @@ function upgradeCompute(){
   state.credits-=cost; state.compute++;
   addLog(state,'ev','🖥 GPU-Cluster auf Stufe '+state.compute+' ausgebaut (+1 Slot).');
   save(); render();
+  if(!state.insights.upgrade){
+    state.insights.upgrade=true; save();
+    openModal('💡 Insight','<p>'+INSIGHTS.upgrade+'</p><p class="muted" style="margin-top:10px;font-size:.8rem">Genau so arbeitet '+esc(BRAND.agency)+' wirklich.</p>',
+      [{label:'Verstanden',cls:'mb-main',fn:closeModal}],'ev');
+  }
 }
 function computeCost(){ return [0,2500,6000,15000,40000][state.compute]||Infinity; }
 function spendSkill(key){
@@ -721,6 +757,15 @@ function closeModal(){
   if(modalQueue.length){ const next=modalQueue.shift(); next(); }
 }
 
+function queueInsight(key){
+  if(!state.insights) state.insights={};
+  if(state.insights[key]||!INSIGHTS[key]) return;
+  state.insights[key]=true;
+  modalQueue.push(()=>openModal('💡 Insight',
+    '<p>'+INSIGHTS[key]+'</p><p class="muted" style="margin-top:10px;font-size:.8rem">Genau so arbeitet '+esc(BRAND.agency)+' wirklich.</p>',
+    [{label:'Verstanden',cls:'mb-main',fn:closeModal}],'ev'));
+}
+
 function showWeekReport(report){
   if(report.gameover){ showGameOver(); return; }
   const s=state;
@@ -728,10 +773,12 @@ function showWeekReport(report){
   for(const r of report.results) html+='<div class="report-item '+r.cls+'">'+r.txt+'</div>';
   html+='</div><h3 style="font-size:.8rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px">Finanzen</h3>';
   for(const [k,v] of report.fin) html+='<div class="fin-row"><span>'+k+'</span><span class="num">'+v+'</span></div>';
-  const table=leagueTable(s); const pos=table.findIndex(r=>r.me)+1;
-  html+='<p style="margin-top:12px" class="muted">Tabellenplatz: <b class="acc">'+pos+'.</b> von '+table.length+' · '+LEAGUES[s.tier].name+'</p>';
+  html+='<p style="margin-top:12px" class="muted">Umsatz dieses Quartal: <b class="acc num">'+fmt(s.qRevenue)+' ¢</b> · Segment: '+SEGMENTS[s.tier].name+'</p>';
 
   modalQueue=[];
+  if(report.didWork) queueInsight('sim');
+  if(report.hadTraining) queueInsight('training');
+  if(report.hadDisaster) queueInsight('disaster');
   const ev=report.event;
   if(ev){
     modalQueue.push(()=>{
@@ -748,18 +795,40 @@ function showWeekReport(report){
       }
     });
   }
-  if(report.season){
-    const se=report.season;
+  if(report.quarter){
+    const qd=report.quarter;
     modalQueue.push(()=>{
-      let t='<p>Saison beendet – Platz <b class="acc num">'+se.pos+'</b> in der '+se.league+'.</p>';
-      if(se.champion) t+='<p class="goldc" style="margin-top:8px">🏆 MEISTERSCHAFT! Prämie: +'+fmt(se.bonus)+' ¢</p>';
-      if(se.moved===1) t+='<p class="good" style="margin-top:8px">⬆ AUFSTIEG in die '+LEAGUES[state.tier].name+'!</p>';
-      if(se.moved===-1) t+='<p class="bad" style="margin-top:8px">⬇ Abstieg in die '+LEAGUES[state.tier].name+'.</p>';
-      if(!se.moved) t+='<p class="muted" style="margin-top:8px">Klassenerhalt – neue Saison, neues Glück.</p>';
-      openModal('Saison '+(state.season-1)+' – Abschluss',t,[{label:'Neue Saison starten',cls:'mb-main',fn:closeModal}]);
+      let t='<p>Quartal '+qd.q+' abgeschlossen: Platz <b class="acc num">'+qd.pos+'</b> im Markt-Ranking · Marktanteil <b class="num">'+qd.share+' %</b> · Umsatz <b class="num">'+fmt(qd.rev)+' ¢</b>.</p>';
+      if(qd.promoted) t+='<p class="good" style="margin-top:8px">🚀 Deine Reputation öffnet ein neues Kundensegment: <b>'+qd.segment+'</b> – größere Projekte, stärkere Mitbewerber.</p>';
+      else t+='<p class="muted" style="margin-top:8px">Mehr Reputation schaltet das nächste Kundensegment frei.</p>';
+      openModal('Quartalsbericht – Q'+qd.q,t,[{label:'Weiter',cls:'mb-main',fn:closeModal}]);
     });
   }
-  openModal('Wochenreport – S'+s.season+'/W'+(s.week-1<1?SEASON_LEN:s.week-1),html,[{label:'Weiter',cls:'mb-main',fn:closeModal}]);
+  if(report.final) modalQueue.push(showFinalReport);
+  openModal('Wochenreport – Woche '+(s.week-1),html,[{label:'Weiter',cls:'mb-main',fn:closeModal}]);
+}
+
+function showFinalReport(){
+  const s=state;
+  const html=
+    '<p>12 Wochen an der Spitze deiner eigenen KI-Agentur – dein Ergebnis:</p>'+
+    '<div style="margin:12px 0">'+
+    '<div class="fin-row"><span>Gesamtumsatz</span><span class="num acc">'+fmt(s.totalRevenue)+' ¢</span></div>'+
+    '<div class="fin-row"><span>Projekte erfolgreich / gescheitert</span><span class="num">'+s.projectsDone+' / '+s.projectsFailed+'</span></div>'+
+    '<div class="fin-row"><span>Reputation</span><span class="num">'+s.rep+'/100</span></div>'+
+    '<div class="fin-row"><span>Kundensegment</span><span>'+SEGMENTS[s.tier].name+'</span></div>'+
+    '<div class="fin-row"><span>Manager-Level</span><span class="num">'+s.mgrLevel+'</span></div>'+
+    '</div>'+
+    '<h3 style="font-size:.8rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin:14px 0 8px">Und genau das machen wir wirklich</h3>'+
+    '<div class="report-item ok">🧠 Agenten nach Stärken einsetzen → Modell- &amp; Tool-Auswahl passend zum Use Case</div>'+
+    '<div class="report-item ok">🏋️ Training → Fine-Tuning, Prompt-Engineering &amp; Evaluation</div>'+
+    '<div class="report-item ok">🖥 Cluster-Ausbau → Infrastruktur &amp; Kosten richtig dimensionieren</div>'+
+    '<div class="report-item ok">🛡 Stabilität statt Desaster → Qualitätssicherung mit Human-in-the-Loop</div>'+
+    '<div class="report-item ok">🚀 Segment-Aufstieg → Referenzen öffnen größere Projekte</div>'+
+    '<p class="muted" style="margin-top:14px">Neugierig, wie das für dein Unternehmen aussieht?</p>';
+  openModal('Abschlussbericht – '+esc(s.company),html,
+    [{label:BRAND.ctaText,cls:'mb-main',fn:()=>{ window.open(BRAND.ctaUrl,'_blank'); }},
+     {label:'Weiterspielen (freies Spiel)',cls:'mb-alt',fn:closeModal}]);
 }
 
 function showGameOver(){
@@ -767,7 +836,7 @@ function showGameOver(){
   $('gameover-card').innerHTML=
     '<div class="logo" style="font-size:1.5rem"><span class="bad">INSOLVENZ</span></div>'+
     '<p class="tagline" style="margin-top:10px">'+esc(s.company)+' ist zahlungsunfähig.<br>'+
-    'Erreicht: '+LEAGUES[s.tier].name+' · Saison '+s.season+' · Manager-Level '+s.mgrLevel+'</p>'+
+    'Erreicht: Segment '+SEGMENTS[s.tier].name+' · Woche '+s.week+' · Manager-Level '+s.mgrLevel+'</p>'+
     (s.trophies.length?'<p style="margin-bottom:14px">'+s.trophies.join('<br>')+'</p>':'')+
     '<button class="btn-primary" onclick="resetGame(true)">Neu gründen</button>';
   $('gameover-screen').classList.add('show');
@@ -795,8 +864,10 @@ function render(){
 function renderHeader(){
   const s=state;
   $('h-company').textContent=s.company+' · '+s.manager;
-  $('h-league').innerHTML='🏟 <b>'+LEAGUES[s.tier].name+'</b>';
-  $('h-week').innerHTML='Saison <b>'+s.season+'</b> · Woche <b>'+s.week+'/'+SEASON_LEN+'</b>';
+  $('h-league').innerHTML='🎯 <b>'+SEGMENTS[s.tier].name+'</b>';
+  $('h-week').innerHTML=s.demoDone
+    ? 'Woche <b>'+s.week+'</b> · freies Spiel'
+    : 'Woche <b>'+s.week+'/'+DEMO_WEEKS+'</b> · Quartal <b>'+(Math.floor((s.week-1)/QUARTER_LEN)+1)+'</b>';
   $('h-credits').textContent=fmt(s.credits)+' ¢';
   $('h-credits').className='val num '+(s.credits<0?'bad':s.credits<800?'warn':'');
   $('h-rep').textContent=s.rep+'/100';
@@ -807,9 +878,9 @@ function renderHeader(){
 
 function renderZentrale(){
   const s=state;
-  const table=leagueTable(s); const pos=table.findIndex(r=>r.me)+1;
+  const table=marketTable(s); const pos=table.findIndex(r=>r.me)+1;
   const salaries=s.agents.reduce((n,a)=>n+a.salary,0);
-  const fixcost=Math.round(LEAGUES[s.tier].fixcost*(1-0.06*(s.skills.finanzen||0)));
+  const fixcost=Math.round(SEGMENTS[s.tier].fixcost*(1-0.06*(s.skills.finanzen||0)));
   const energy=s.compute*80;
   let skillHtml='';
   for(const k of Object.keys(SKILLS)){
@@ -825,16 +896,17 @@ function renderZentrale(){
   $('tab-zentrale').innerHTML=
   '<div class="grid grid-2">'+
     '<div class="card"><h3>Lagebericht</h3>'+
-      '<div class="kpi"><span>Liga</span><span class="v acc">'+LEAGUES[s.tier].name+' · Platz '+pos+'</span></div>'+
-      '<div class="kpi"><span>Punkte (Saison)</span><span class="v">'+s.myPts+'</span></div>'+
+      '<div class="kpi"><span>Kundensegment</span><span class="v acc">'+SEGMENTS[s.tier].name+' · Platz '+pos+' im Markt</span></div>'+
+      '<div class="kpi"><span>Umsatz (Quartal)</span><span class="v">'+fmt(s.qRevenue)+' ¢</span></div>'+
+      '<div class="kpi"><span>Umsatz (gesamt)</span><span class="v">'+fmt(s.totalRevenue)+' ¢</span></div>'+
       '<div class="kpi"><span>Reputation</span><span class="v">'+s.rep+'/100</span></div>'+
       '<div class="kpi"><span>Agenten im Kader</span><span class="v">'+s.agents.length+'</span></div>'+
-      '<div class="kpi"><span>Trophäen</span><span class="v">'+(s.trophies.length||'–')+'</span></div>'+
+      '<div class="kpi"><span>Meilensteine</span><span class="v">'+(s.trophies.length||'–')+'</span></div>'+
     '</div>'+
     '<div class="card"><h3>Wöchentliche Kosten</h3>'+
       '<div class="kpi"><span>Gehälter</span><span class="v">−'+fmt(salaries)+' ¢</span></div>'+
       '<div class="kpi"><span>Energie (Cluster)</span><span class="v">−'+fmt(energy)+' ¢</span></div>'+
-      '<div class="kpi"><span>Fixkosten Liga</span><span class="v">−'+fmt(fixcost)+' ¢</span></div>'+
+      '<div class="kpi"><span>Bürokosten (Segment)</span><span class="v">−'+fmt(fixcost)+' ¢</span></div>'+
       '<div class="kpi"><span><b>Summe</b></span><span class="v bad">−'+fmt(salaries+energy+fixcost)+' ¢</span></div>'+
     '</div>'+
     '<div class="card"><h3>GPU-Cluster (Stufe '+s.compute+'/5)</h3>'+
@@ -869,7 +941,6 @@ function renderAuftraege(){
       '<div class="c-row">'+
         '<span>💰 <b class="num">'+fmt(c.reward)+' ¢</b></span>'+
         '<span>⭐ +'+c.rep+' Rep</span>'+
-        '<span>🏟 +'+c.lp+' Pkt</span>'+
         '<span>🎯 Anforderung: '+STATS[CATS[c.cat].primary]+' / '+STATS[CATS[c.cat].secondary]+'</span>'+
       '</div>'+
       '<div class="c-row"><span>Erfolgschance: <span class="chance '+chColor+'">'+(c.assigned.length?chance+' %':'–')+'</span></span></div>'+
@@ -942,26 +1013,29 @@ function renderMarkt(){
 
 function renderLiga(){
   const s=state;
-  const table=leagueTable(s);
+  const table=marketTable(s);
+  const total=table.reduce((n,r)=>n+r.rev,0)||1;
   let rows='';
   table.forEach((r,i)=>{
-    const promo=i<2, releg=i>=table.length-2;
-    rows+='<tr class="'+(r.me?'me ':'')+(promo?'promo':releg?'releg':'')+'"><td class="num">'+(i+1)+'</td><td>'+esc(r.name)+(r.me?' ★':'')+'</td><td class="num">'+r.pts+'</td></tr>';
+    rows+='<tr class="'+(r.me?'me':'')+'"><td class="num">'+(i+1)+'</td><td>'+esc(r.name)+(r.me?' ★':'')+'</td><td class="num">'+fmt(r.rev)+'</td><td class="num">'+Math.round(100*r.rev/total)+' %</td></tr>';
   });
   let ladder='';
-  LEAGUES.slice().reverse().forEach((L,i)=>{
-    const tier=LEAGUES.length-1-i;
-    ladder+='<div class="kpi"><span>'+(tier===s.tier?'▶ ':'')+L.name+'</span><span class="v '+(tier===s.tier?'acc':'muted')+'">'+(tier===s.tier?'DEINE LIGA':'Tier '+(5-tier))+'</span></div>';
+  SEGMENTS.slice().reverse().forEach((L,i)=>{
+    const tier=SEGMENTS.length-1-i;
+    const status=tier===s.tier?'DEIN SEGMENT':tier<s.tier?'erschlossen':'ab Rep '+L.repGate;
+    ladder+='<div class="kpi"><span>'+(tier===s.tier?'▶ ':'')+L.name+'</span><span class="v '+(tier===s.tier?'acc':tier<s.tier?'good':'muted')+'">'+status+'</span></div>';
   });
   let troph='';
-  if(s.trophies.length) troph='<div class="card" style="margin-top:16px"><h3>Trophäenschrank</h3>'+s.trophies.map(t=>'<div class="kpi"><span>'+esc(t)+'</span></div>').join('')+'</div>';
+  if(s.trophies.length) troph='<div class="card" style="margin-top:16px"><h3>Meilensteine</h3>'+s.trophies.map(t=>'<div class="kpi"><span>'+esc(t)+'</span></div>').join('')+'</div>';
   $('tab-liga').innerHTML=
   '<div class="grid grid-2">'+
-    '<div class="card"><h3>'+LEAGUES[s.tier].name+' · Woche '+s.week+'/'+SEASON_LEN+'</h3>'+
-      '<table><thead><tr><th class="num">#</th><th>Agentur</th><th class="num">Punkte</th></tr></thead><tbody>'+rows+'</tbody></table>'+
-      '<p class="muted" style="font-size:.75rem;margin-top:10px"><span class="good">▎</span> Aufstieg (Platz 1–2) · <span class="bad">▎</span> Abstieg (letzte 2)</p>'+
+    '<div class="card"><h3>Markt-Ranking · Segment '+SEGMENTS[s.tier].name+' · Quartal '+(Math.floor((s.week-1)/QUARTER_LEN)+1)+'</h3>'+
+      '<table><thead><tr><th class="num">#</th><th>Agentur</th><th class="num">Umsatz (¢)</th><th class="num">Marktanteil</th></tr></thead><tbody>'+rows+'</tbody></table>'+
+      '<p class="muted" style="font-size:.75rem;margin-top:10px">Umsätze des laufenden Quartals. Nicht angenommene Aufträge landen bei der Konkurrenz.</p>'+
     '</div>'+
-    '<div><div class="card"><h3>Liga-Pyramide</h3>'+ladder+'</div>'+troph+'</div>'+
+    '<div><div class="card"><h3>Kundensegmente</h3>'+ladder+
+      '<p class="muted" style="font-size:.75rem;margin-top:10px">Aufstieg über Reputation – Referenzen öffnen größere Kunden. Es gibt keinen Zwangsabstieg, nur Marktdruck.</p>'+
+    '</div>'+troph+'</div>'+
   '</div>';
 }
 
