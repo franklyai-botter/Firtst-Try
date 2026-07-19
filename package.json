@@ -9,9 +9,16 @@
     "preview": "vite preview"
   },
   "devDependencies": {
+    "@playwright/test": "^1.61.1",
     "vite": "^5.0.0"
   },
-  "keywords": ["game", "medieval", "strategy", "c64", "kaiser"],
+  "keywords": [
+    "game",
+    "medieval",
+    "strategy",
+    "c64",
+    "kaiser"
+  ],
   "author": "NeuralNautic",
   "license": "MIT"
 }

@@ -1,0 +1,1010 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NEURAL MANAGER – Der KI-Agentur-Manager</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0b1020; --bg2:#0e1530; --panel:#141b31; --panel2:#1a2342;
+  --line:#26304f; --text:#dbe4ff; --muted:#8b96b8;
+  --accent:#22d3ee; --accent2:#a78bfa;
+  --good:#34d399; --warn:#fbbf24; --bad:#f87171; --gold:#f0c040;
+  --radius:12px; --font:'Space Grotesk',system-ui,sans-serif;
+  --mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:radial-gradient(1200px 800px at 70% -10%,#1b2a5e 0%,var(--bg) 55%);color:var(--text);font-family:var(--font);min-height:100vh}
+button{font-family:var(--font);cursor:pointer;border:none;border-radius:8px}
+button:disabled{opacity:.45;cursor:not-allowed}
+input,select{font-family:var(--font);background:var(--bg2);color:var(--text);border:1px solid var(--line);border-radius:8px;padding:8px 10px}
+.num{font-family:var(--mono)}
+.hidden{display:none!important}
+
+/* ---------- Start screen ---------- */
+#start-screen{position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;background:radial-gradient(900px 600px at 50% 20%,#1b2a5e 0%,var(--bg) 60%)}
+.start-card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:40px 44px;max-width:520px;width:92%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.logo{font-size:2rem;font-weight:700;letter-spacing:.12em}
+.logo .n1{color:var(--accent)} .logo .n2{color:var(--accent2)}
+.tagline{color:var(--muted);margin:8px 0 26px;font-size:.95rem}
+.start-card label{display:block;text-align:left;color:var(--muted);font-size:.8rem;margin:14px 0 4px;text-transform:uppercase;letter-spacing:.08em}
+.start-card input{width:100%;font-size:1rem}
+.btn-primary{background:linear-gradient(135deg,var(--accent),#0ea5c9);color:#04222b;font-weight:700;padding:12px 22px;font-size:1rem;margin-top:22px;width:100%}
+.btn-primary:hover{filter:brightness(1.1)}
+.btn-ghost{background:transparent;border:1px solid var(--line);color:var(--muted);padding:10px 18px;margin-top:10px;width:100%}
+.btn-ghost:hover{color:var(--text);border-color:var(--accent)}
+
+/* ---------- Header ---------- */
+header{position:sticky;top:0;z-index:20;background:rgba(11,16,32,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);padding:10px 18px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.h-logo{font-weight:700;letter-spacing:.08em;font-size:1.05rem;white-space:nowrap}
+.h-company{color:var(--muted);font-size:.85rem}
+.badge{background:var(--panel2);border:1px solid var(--line);border-radius:999px;padding:4px 12px;font-size:.8rem;white-space:nowrap}
+.badge b{color:var(--accent)}
+.res{display:flex;gap:14px;flex-wrap:wrap;margin-left:auto;align-items:center}
+.res-item{display:flex;flex-direction:column;align-items:flex-end;min-width:70px}
+.res-item .lbl{font-size:.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+.res-item .val{font-family:var(--mono);font-size:.95rem}
+#btn-sim{background:linear-gradient(135deg,var(--accent2),#7c5ce0);color:#150b2e;font-weight:700;padding:10px 20px;font-size:.95rem}
+#btn-sim:hover{filter:brightness(1.12)}
+#btn-reset{background:transparent;border:1px solid var(--line);color:var(--muted);padding:8px 12px;font-size:.75rem}
+.mgr-bar{width:110px;height:6px;background:var(--bg2);border-radius:3px;overflow:hidden;margin-top:3px}
+.mgr-bar>div{height:100%;background:var(--gold)}
+
+/* ---------- Tabs ---------- */
+nav{display:flex;gap:4px;padding:10px 18px 0;border-bottom:1px solid var(--line);flex-wrap:wrap}
+nav button{background:transparent;color:var(--muted);padding:10px 18px;border-radius:8px 8px 0 0;font-size:.95rem;border-bottom:2px solid transparent}
+nav button.active{color:var(--accent);border-bottom-color:var(--accent);background:rgba(34,211,238,.06)}
+nav button:hover{color:var(--text)}
+main{padding:20px 18px 60px;max-width:1280px;margin:0 auto}
+
+/* ---------- Cards / grid ---------- */
+.grid{display:grid;gap:16px}
+.grid-2{grid-template-columns:repeat(auto-fit,minmax(340px,1fr))}
+.grid-3{grid-template-columns:repeat(auto-fill,minmax(300px,1fr))}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:16px}
+.card h3{font-size:.85rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:12px}
+.kpi{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px dashed var(--line);font-size:.9rem}
+.kpi:last-child{border-bottom:none}
+.kpi .v{font-family:var(--mono)}
+.good{color:var(--good)} .bad{color:var(--bad)} .warn{color:var(--warn)} .muted{color:var(--muted)} .acc{color:var(--accent)} .acc2{color:var(--accent2)} .goldc{color:var(--gold)}
+
+/* ---------- Contracts ---------- */
+.contract{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:16px;display:flex;flex-direction:column;gap:10px}
+.contract.assigned-any{border-color:var(--accent)}
+.c-head{display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+.c-title{font-weight:700}
+.c-client{color:var(--muted);font-size:.82rem}
+.tag{font-size:.7rem;padding:2px 9px;border-radius:999px;border:1px solid var(--line);color:var(--muted);white-space:nowrap}
+.tag.cat{border-color:var(--accent2);color:var(--accent2)}
+.c-row{display:flex;gap:14px;flex-wrap:wrap;font-size:.85rem}
+.chance{font-family:var(--mono);font-weight:600}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{background:var(--bg2);border:1px solid var(--line);color:var(--text);border-radius:999px;padding:4px 12px;font-size:.8rem}
+.chip.sel{background:rgba(34,211,238,.15);border-color:var(--accent);color:var(--accent)}
+.chip:disabled{opacity:.35}
+.slots-info{margin-bottom:14px;color:var(--muted);font-size:.9rem}
+
+/* ---------- Agents ---------- */
+.agent{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:16px}
+.agent.out{border-color:var(--bad)}
+.a-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px}
+.a-name{font-weight:700;font-size:1.05rem}
+.a-arch{color:var(--accent2);font-size:.8rem}
+.a-trait{color:var(--muted);font-size:.78rem;margin-bottom:8px}
+.statrow{display:flex;align-items:center;gap:8px;font-size:.78rem;margin:3px 0}
+.statrow .sl{width:74px;color:var(--muted)}
+.statbar{flex:1;height:7px;background:var(--bg2);border-radius:4px;overflow:hidden}
+.statbar>div{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2))}
+.statrow .sv{font-family:var(--mono);width:26px;text-align:right}
+.meters{display:flex;gap:12px;margin:10px 0;font-size:.78rem}
+.meter{flex:1}
+.meter .lbl{color:var(--muted);display:flex;justify-content:space-between}
+.mbar{height:6px;background:var(--bg2);border-radius:3px;overflow:hidden;margin-top:3px}
+.mbar>div{height:100%}
+.a-actions{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;align-items:center}
+.btn-sm{background:var(--panel2);border:1px solid var(--line);color:var(--text);padding:6px 12px;font-size:.8rem}
+.btn-sm:hover{border-color:var(--accent)}
+.btn-sm.danger:hover{border-color:var(--bad);color:var(--bad)}
+.btn-sm.training-on{background:rgba(167,139,250,.2);border-color:var(--accent2);color:var(--accent2)}
+.xpbar{height:5px;background:var(--bg2);border-radius:3px;overflow:hidden;margin-top:4px}
+.xpbar>div{height:100%;background:var(--gold)}
+
+/* ---------- League table ---------- */
+table{width:100%;border-collapse:collapse;font-size:.9rem}
+th{font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);text-align:left;padding:6px 8px;border-bottom:1px solid var(--line)}
+td{padding:7px 8px;border-bottom:1px solid rgba(38,48,79,.5)}
+tr.me td{background:rgba(34,211,238,.08);font-weight:700}
+tr.promo td:first-child{border-left:3px solid var(--good)}
+tr.releg td:first-child{border-left:3px solid var(--bad)}
+td.num,th.num{text-align:right;font-family:var(--mono)}
+
+/* ---------- Log ---------- */
+.log{max-height:300px;overflow-y:auto;font-size:.83rem;display:flex;flex-direction:column;gap:6px}
+.log div{padding:6px 10px;background:var(--bg2);border-radius:6px;border-left:3px solid var(--line)}
+.log .lg-good{border-left-color:var(--good)} .log .lg-bad{border-left-color:var(--bad)} .log .lg-ev{border-left-color:var(--accent2)}
+
+/* ---------- Skilltree ---------- */
+.skill{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px dashed var(--line);gap:8px}
+.skill:last-child{border:none}
+.pips{display:flex;gap:4px}
+.pip{width:12px;height:12px;border-radius:50%;background:var(--bg2);border:1px solid var(--line)}
+.pip.on{background:var(--gold);border-color:var(--gold)}
+
+/* ---------- Modal ---------- */
+#modal-wrap{position:fixed;inset:0;background:rgba(4,7,18,.75);z-index:40;display:flex;align-items:center;justify-content:center;padding:16px}
+.modal{background:var(--panel);border:1px solid var(--line);border-radius:16px;max-width:640px;width:100%;max-height:86vh;overflow-y:auto;padding:26px 28px;box-shadow:0 24px 80px rgba(0,0,0,.6)}
+.modal h2{font-size:1.2rem;margin-bottom:14px}
+.modal h2.ev{color:var(--accent2)}
+.report-item{padding:9px 12px;border-radius:8px;background:var(--bg2);margin-bottom:8px;font-size:.9rem;border-left:3px solid var(--line)}
+.report-item.ok{border-left-color:var(--good)} .report-item.crit{border-left-color:var(--gold)}
+.report-item.fail{border-left-color:var(--warn)} .report-item.dis{border-left-color:var(--bad)}
+.fin-row{display:flex;justify-content:space-between;font-size:.88rem;padding:3px 0}
+.fin-row .num{font-family:var(--mono)}
+.modal-btns{display:flex;gap:10px;margin-top:20px;flex-wrap:wrap}
+.modal-btns button{flex:1;padding:11px 16px;font-size:.95rem}
+.mb-main{background:linear-gradient(135deg,var(--accent),#0ea5c9);color:#04222b;font-weight:700}
+.mb-alt{background:var(--panel2);border:1px solid var(--line);color:var(--text)}
+
+/* ---------- Game over ---------- */
+#gameover-screen{position:fixed;inset:0;z-index:60;display:none;align-items:center;justify-content:center;background:rgba(4,7,18,.92)}
+#gameover-screen.show{display:flex}
+
+@media(max-width:700px){
+  .res{gap:8px}.res-item{min-width:56px}
+  main{padding:14px 10px 60px}
+}
+</style>
+</head>
+<body>
+
+<!-- ======================= START ======================= -->
+<div id="start-screen">
+  <div class="start-card">
+    <div class="logo"><span class="n1">NEURAL</span> <span class="n2">MANAGER</span></div>
+    <div class="tagline">Gründe deine KI-Agentur. Trainiere deine Agenten.<br>Kämpf dich von der Garagen-Liga bis an die Frontier.</div>
+    <label for="inp-company">Name deiner Agentur</label>
+    <input id="inp-company" maxlength="24" placeholder="z. B. NeuralNautic Labs">
+    <label for="inp-manager">Dein Name (Manager)</label>
+    <input id="inp-manager" maxlength="20" placeholder="z. B. Frank">
+    <button class="btn-primary" id="btn-found" onclick="foundCompany()">🚀 Agentur gründen</button>
+    <button class="btn-ghost hidden" id="btn-continue" onclick="continueGame()">Gespeicherten Stand fortsetzen</button>
+  </div>
+</div>
+
+<!-- ======================= GAME ======================= -->
+<div id="game" class="hidden">
+<header>
+  <div>
+    <div class="h-logo"><span class="acc">NEURAL</span> <span class="acc2">MANAGER</span></div>
+    <div class="h-company" id="h-company"></div>
+  </div>
+  <span class="badge" id="h-league"></span>
+  <span class="badge" id="h-week"></span>
+  <div class="res">
+    <div class="res-item"><span class="lbl">Credits</span><span class="val" id="h-credits"></span></div>
+    <div class="res-item"><span class="lbl">Reputation</span><span class="val" id="h-rep"></span></div>
+    <div class="res-item"><span class="lbl">Slots</span><span class="val" id="h-slots"></span></div>
+    <div class="res-item">
+      <span class="lbl">Manager <span id="h-mlvl"></span></span>
+      <div class="mgr-bar"><div id="h-mxp" style="width:0%"></div></div>
+    </div>
+    <button id="btn-sim" onclick="simulateWeek()">▶ Woche simulieren</button>
+    <button id="btn-reset" onclick="resetGame()" title="Spielstand löschen">↺ Reset</button>
+  </div>
+</header>
+
+<nav>
+  <button data-tab="zentrale" class="active" onclick="showTab('zentrale')">Zentrale</button>
+  <button data-tab="auftraege" onclick="showTab('auftraege')">Aufträge</button>
+  <button data-tab="team" onclick="showTab('team')">Team &amp; Training</button>
+  <button data-tab="markt" onclick="showTab('markt')">Transfermarkt</button>
+  <button data-tab="liga" onclick="showTab('liga')">Liga</button>
+</nav>
+
+<main>
+  <div id="tab-zentrale"></div>
+  <div id="tab-auftraege" class="hidden"></div>
+  <div id="tab-team" class="hidden"></div>
+  <div id="tab-markt" class="hidden"></div>
+  <div id="tab-liga" class="hidden"></div>
+</main>
+</div>
+
+<div id="modal-wrap" class="hidden"><div class="modal" id="modal-content"></div></div>
+
+<div id="gameover-screen"><div class="start-card" id="gameover-card"></div></div>
+
+<script>
+'use strict';
+/* =====================================================================
+   NEURAL MANAGER – One-Shot-Prototyp (v0.1)
+   Ein KI-Agentur-Manager im Stil eines Fußballmanagers.
+   Alles in einer Datei: Zustand, Logik, UI. Save via localStorage.
+   ===================================================================== */
+
+/* ---------------- Konfiguration ---------------- */
+const SAVE_KEY = 'aimanager_save';
+const SEASON_LEN = 10;
+
+const STATS = { logic:'Logik', creativity:'Kreativität', code:'Code', knowledge:'Wissen', speed:'Tempo', stability:'Stabilität' };
+
+const LEAGUES = [
+  { name:'Garagen-Liga',    diff:32, reward:1.0, fixcost:120,  power:[18,42] },
+  { name:'Startup-Liga',    diff:46, reward:1.8, fixcost:320,  power:[34,58] },
+  { name:'Growth-Liga',     diff:60, reward:3.2, fixcost:750,  power:[48,72] },
+  { name:'Enterprise-Liga', diff:74, reward:5.5, fixcost:1600, power:[62,86] },
+  { name:'Frontier-Liga',   diff:88, reward:9.0, fixcost:3200, power:[78,99] },
+];
+
+const CATS = {
+  code:      { label:'Entwicklung', primary:'code',      secondary:'logic' },
+  logic:     { label:'Analyse',     primary:'logic',     secondary:'knowledge' },
+  creativity:{ label:'Kreativ',     primary:'creativity',secondary:'speed' },
+  knowledge: { label:'Recherche',   primary:'knowledge', secondary:'stability' },
+};
+
+const ARCHETYPES = [
+  { id:'gen',  name:'Generalist',      cat:null,        focus:['logic','code'] },
+  { id:'code', name:'Code-Spezialist', cat:'code',      focus:['code','logic'] },
+  { id:'krea', name:'Kreativ-Modell',  cat:'creativity',focus:['creativity','speed'] },
+  { id:'data', name:'Daten-Analyst',   cat:'logic',     focus:['logic','knowledge'] },
+  { id:'rech', name:'Rechercheur',     cat:'knowledge', focus:['knowledge','stability'] },
+];
+
+const TRAITS = [
+  { id:'workaholic', name:'Workaholic',  desc:'Zustand sinkt langsamer',            condMult:.6 },
+  { id:'diva',       name:'Diva',        desc:'Moral schwankt stark',               moraleMult:1.6 },
+  { id:'halluzi',    name:'Halluzinator',desc:'Desaster-Risiko +, dafür günstig',   disaster:8, salaryMult:.7 },
+  { id:'praezise',   name:'Präzise',     desc:'Desaster-Risiko deutlich gesenkt',   disaster:-6 },
+  { id:'wunder',     name:'Wunderkind',  desc:'Sammelt XP 35 % schneller',          xpMult:1.35 },
+  { id:'effizient',  name:'Effizient',   desc:'15 % günstigeres Gehalt',            salaryMult:.85 },
+];
+
+const AGENT_NAMES = ['NOVA','ATLAS','ORION','LUMEN','VEGA','QUANT','ECHO','CIPHER','NEXUS','AURORA','ZEPHYR','MIRA','SOL','KRONOS','IRIS','PULSE','DELTA','HELIX','ONYX','LYRA','FLUX','RAVEN','TESSA','GLIMMER','JUNO','KANT','BOREAS','SIRIUS'];
+
+const RIVAL_NAMES = ['Kellerkind KI','ByteSchmiede','GarageMind','Neuronale Nachbarn','Prompt & Söhne','Datenkeller GmbH','TensorTaxi','SynapsenWerk','DeepDenker','CloudKobold','LogikLabor','BitBrauerei','AlgoAtelier','MindMacher','VektorVilla','SchlauSchmiede','KI-Kiosk','NeuroNest','QuantenQuark','InferenzInstitut','GradientGarten','TokenTruppe','ModellManufaktur','LatentLounge','EpochenEcke','ParameterPark','Skalierbar & Co','RoboRüben'];
+
+const CLIENTS = [
+  ['Pizzeria Bellissima','Fahrschule Blitz','Blumen Krause','Kiosk 24/7','Friseur Löwenmähne','Tischlerei Span','Café Muckefuck','Reisebüro Fernweh'],
+  ['FinTech PayPirat','Food-App Mampf','HR-Startup JobJet','PropTech Wohnwut','EdTech LernLux','GreenTech Solaris','MedTech Pulsar'],
+  ['Maschinenbau MSK','Logistik LKW-Werk','Versicherung ProSecura','Handelskette KaufKlar','Klinikverbund Vital','Möbelwerke Nordholz'],
+  ['Automotive-Konzern AXV','Bundesbehörde für Digitales','Energieriese VoltAG','Großbank Metropol','TelekomTitan','Luftfahrt Aerix'],
+  ['Frontier Lab Helios','Raumfahrtagentur ESRA','Weltkonzern OmniCorp','Forschungscluster Gaia','MegaLab Prometheus','Quantum Dynamics'],
+];
+
+const JOB_TITLES = {
+  code:      ['Website-Relaunch','Buchungssystem','Automatisierungs-Skript','App-Prototyp','API-Integration','Shop-Migration','Chatbot-Deployment'],
+  logic:     ['Umsatz-Analyse','Preisoptimierung','Betrugs-Erkennung','Forecast-Modell','Lager-Optimierung','Kunden-Segmentierung'],
+  creativity:['Werbekampagne','Social-Media-Content','Markenauftritt','Produktvideo-Konzept','Namensfindung','Pitch-Deck-Design'],
+  knowledge: ['Marktrecherche','Wettbewerbsanalyse','Trendreport','Due-Diligence-Zuarbeit','Wissensdatenbank','Studien-Auswertung'],
+};
+
+const SKILLS = {
+  scouting:    { name:'Scouting',       desc:'Bessere & mehr Agenten im Markt' },
+  training:    { name:'Trainingslehre', desc:'+Trainingseffekt · Stufe 3: 2. Slot' },
+  verhandlung: { name:'Verhandlung',    desc:'+4 %/Stufe Vergütung, −4 % Kaufpreise' },
+  finanzen:    { name:'Finanzen',       desc:'−6 %/Stufe Fixkosten' },
+};
+
+/* Events: effect() wird sofort ausgeführt; choices[] erzeugt Entscheidungs-Modal */
+const EVENTS = [
+  { id:'gpu', title:'GPU-Ausfall im Cluster', text:'Ein Kühlungsdefekt legt den Cluster für Stunden lahm. Alle Agenten verlieren 15 Zustand.',
+    effect:s=>{ s.agents.forEach(a=>a.cond=clamp(a.cond-15,0,100)); } },
+  { id:'hype', title:'Hype-Welle', text:'Ein Tech-Blog feiert eure Arbeit – die Reputation steigt um 6.',
+    effect:s=>{ s.rep=clamp(s.rep+6,0,100); } },
+  { id:'strom', title:'Strompreis-Spitze', text:'Die Energiekosten explodieren diese Woche.',
+    effect:s=>{ const c=150*s.compute; s.credits-=c; s.week_extra_cost=(s.week_extra_cost||0)+c; } },
+  { id:'oss', title:'Open-Source-Durchbruch', text:'Ein neues Framework hebt einen eurer Agenten spürbar an (+4 auf ein Attribut).',
+    effect:s=>{ const a=pick(s.agents); if(a){ const k=pick(Object.keys(STATS)); a.stats[k]=clamp(a.stats[k]+4,1,100); s.lastEventNote=a.name+': +4 '+STATS[k]; } } },
+  { id:'bug', title:'Bug im Live-Deployment', text:'Ein peinlicher Fehler beim Kunden kostet 4 Reputation.',
+    effect:s=>{ s.rep=clamp(s.rep-4,0,100); } },
+  { id:'prakti', title:'Praktikant optimiert Pipeline', text:'Eine kleine Optimierung spart sofort 300 Credits.',
+    effect:s=>{ s.credits+=300; } },
+  { id:'viral', title:'Viral gegangen!', text:'Ein Demo-Video eurer Agenten geht viral. Nächste Woche: +20 % auf alle Vergütungen.',
+    effect:s=>{ s.buffReward=1.2; } },
+  { id:'abwerbe', title:'Abwerbeversuch!', text:'Ein Konkurrent umgarnt euren besten Agenten.',
+    choices:[
+      { label:'Gehalt um 30 % erhöhen (bleibt sicher)', run:s=>{ const a=bestAgent(s); if(a){ a.salary=Math.round(a.salary*1.3); a.morale=clamp(a.morale+10,0,100); return a.name+' bleibt – Gehalt jetzt '+a.salary+' ¢/Woche.'; } return 'Kein Agent betroffen.'; } },
+      { label:'Ablehnen und riskieren', run:s=>{ const a=bestAgent(s); if(a && s.agents.length>2 && Math.random()<0.35){ removeAgent(s,a.id); return '😱 '+a.name+' hat unterschrieben – der Agent ist weg!'; } if(a){ a.morale=clamp(a.morale-12,0,100); return a.name+' bleibt, ist aber angefressen (−12 Moral).'; } return 'Kein Agent betroffen.'; } },
+    ] },
+  { id:'investor', title:'Investor klopft an', text:'Ein Angel-Investor bietet 2000 Credits – verlangt aber einen Exklusivdeal, der eure Unabhängigkeit ankratzt.',
+    choices:[
+      { label:'Annehmen (+2000 ¢, −8 Rep)', run:s=>{ s.credits+=2000; s.rep=clamp(s.rep-8,0,100); return 'Deal! +2000 Credits, aber die Szene tuschelt (−8 Reputation).'; } },
+      { label:'Ablehnen (+2 Rep)', run:s=>{ s.rep=clamp(s.rep+2,0,100); return 'Ihr bleibt unabhängig – das kommt gut an (+2 Reputation).'; } },
+    ] },
+  { id:'konferenz', title:'Konferenz-Einladung', text:'Ihr könnt auf der NeuralConf ausstellen. Standkosten: 400 Credits.',
+    choices:[
+      { label:'Hinfahren (−400 ¢, +8 Rep, +50 Mgr-XP)', run:s=>{ if(s.credits<400) return 'Zu teuer – ihr bleibt zuhause.'; s.credits-=400; s.rep=clamp(s.rep+8,0,100); addMgrXp(s,50); return 'Starker Auftritt! +8 Reputation, +50 Manager-XP.'; } },
+      { label:'Absagen', run:s=>'Ihr spart euch den Trubel.' },
+    ] },
+  { id:'teamevent', title:'Team-Event?', text:'Die Agenten wünschen sich ein LAN-Grillfest (200 Credits).',
+    choices:[
+      { label:'Feiern (−200 ¢, +10 Moral für alle)', run:s=>{ if(s.credits<200) return 'Kein Budget – die Stimmung sinkt leicht.'; s.credits-=200; s.agents.forEach(a=>a.morale=clamp(a.morale+10,0,100)); return 'Beste Stimmung im Cluster! +10 Moral für alle.'; } },
+      { label:'Kein Budget', run:s=>{ s.agents.forEach(a=>a.morale=clamp(a.morale-4,0,100)); return 'Die Agenten murren leise (−4 Moral).'; } },
+    ] },
+];
+
+/* ---------------- Helpers ---------------- */
+const $=id=>document.getElementById(id);
+const rnd=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
+const pick=arr=>arr[Math.floor(Math.random()*arr.length)];
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const fmt=n=>Math.round(n).toLocaleString('de-DE');
+const esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+let state=null;
+let uid=1;
+
+/* ---------------- Generatoren ---------------- */
+function makeAgent(tier, qualityBonus=0){
+  const arch=pick(ARCHETYPES);
+  const trait=pick(TRAITS);
+  const L=LEAGUES[tier];
+  const base=Math.round((L.power[0]+L.power[1])/2)-8+qualityBonus;
+  const stats={};
+  for(const k of Object.keys(STATS)){
+    let v=base+rnd(-9,9);
+    if(arch.focus.includes(k)) v+=rnd(6,14);
+    stats[k]=clamp(v,5,99);
+  }
+  const avg=Object.values(stats).reduce((a,b)=>a+b,0)/6;
+  const level=1+Math.max(0,Math.round((avg-25)/8));
+  let salary=Math.round((35+level*12+avg*1.8)*(trait.salaryMult||1));
+  return {
+    id:uid++, name:pick(AGENT_NAMES)+'-'+rnd(1,9), arch:arch.id, trait:trait.id,
+    level, xp:0, stats, cond:100, morale:70, salary,
+    value:Math.round(avg*30+level*120), out:0,
+  };
+}
+function agentArch(a){ return ARCHETYPES.find(x=>x.id===a.arch); }
+function agentTrait(a){ return TRAITS.find(x=>x.id===a.trait); }
+function bestAgent(s){ return [...s.agents].sort((a,b)=>agentPowerAvg(b)-agentPowerAvg(a))[0]; }
+function agentPowerAvg(a){ return Object.values(a.stats).reduce((x,y)=>x+y,0)/6; }
+function removeAgent(s,id){
+  s.agents=s.agents.filter(a=>a.id!==id);
+  s.contracts.forEach(c=>c.assigned=c.assigned.filter(x=>x!==id));
+  if(s.training && s.training.agentId===id) s.training=null;
+}
+
+function makeContract(s){
+  const tier=s.tier, L=LEAGUES[tier];
+  const catKey=pick(Object.keys(CATS));
+  const cat=CATS[catKey];
+  const kind=Math.random();
+  let diff,lp,label;
+  if(kind<0.4){ diff=L.diff+rnd(-12,-4); lp=1; label='Leicht'; }
+  else if(kind<0.75){ diff=L.diff+rnd(-3,5); lp=2; label='Mittel'; }
+  else if(kind<0.93){ diff=L.diff+rnd(6,14); lp=3; label='Schwer'; }
+  else { diff=L.diff+rnd(15,24); lp=4; label='Elite'; }
+  const negoBonus=1+0.04*(s.skills.verhandlung||0);
+  const reward=Math.round(diff*17*L.reward*(0.9+Math.random()*0.3)*negoBonus);
+  return {
+    id:uid++, title:pick(JOB_TITLES[catKey]), client:pick(CLIENTS[tier]),
+    cat:catKey, diff, lp, label, reward, rep:lp, assigned:[],
+  };
+}
+function refreshContracts(s){
+  const n=4+(s.rep>=60?1:0)+(s.rep>=85?1:0);
+  s.contracts=[]; for(let i=0;i<n;i++) s.contracts.push(makeContract(s));
+}
+function refreshMarket(s){
+  const n=3+Math.ceil((s.skills.scouting||0)/2);
+  const q=(s.skills.scouting||0)*4;
+  s.market=[]; for(let i=0;i<n;i++){
+    const a=makeAgent(s.tier,q+rnd(-3,6));
+    a.price=Math.round(a.value*(1.4-0.04*(s.skills.verhandlung||0)));
+    s.market.push(a);
+  }
+}
+function makeRivals(tier){
+  const L=LEAGUES[tier];
+  const names=[...RIVAL_NAMES].sort(()=>Math.random()-0.5).slice(0,7);
+  return names.map(n=>({ name:n, power:rnd(L.power[0],L.power[1]), pts:0 }));
+}
+
+/* ---------------- Spielstart ---------------- */
+function newState(company,manager){
+  const s={
+    company, manager, season:1, week:1, tier:0,
+    credits:6000, rep:20, compute:1,
+    mgrLevel:1, mgrXp:0, skillPoints:0,
+    skills:{scouting:0,training:0,verhandlung:0,finanzen:0},
+    agents:[], contracts:[], market:[], rivals:makeRivals(0),
+    myPts:0, training:null, training2:null,
+    insolvencyWarnings:0, buffReward:1, log:[],
+    trophies:[],
+  };
+  for(let i=0;i<3;i++) s.agents.push(makeAgent(0, i===0?6:0));
+  refreshContracts(s); refreshMarket(s);
+  addLog(s,'ev','Willkommen, '+manager+'! '+company+' startet in der Garagen-Liga. Weise Agenten den Aufträgen zu und simuliere die Woche.');
+  return s;
+}
+function addLog(s,type,msg){ s.log.unshift({type,msg,w:'S'+s.season+'/W'+s.week}); s.log=s.log.slice(0,40); }
+
+/* ---------------- Slots / Zuweisung ---------------- */
+function workSlots(s){ return 2+s.compute; }
+function usedSlots(s){ return s.contracts.reduce((n,c)=>n+c.assigned.length,0); }
+function trainingSlots(s){ return (s.skills.training>=3)?2:1; }
+function agentBusy(s,id){
+  if(s.training&&s.training.agentId===id) return true;
+  if(s.training2&&s.training2.agentId===id) return true;
+  return s.contracts.some(c=>c.assigned.includes(id));
+}
+function toggleAssign(cid,aid){
+  const c=state.contracts.find(x=>x.id===cid); if(!c) return;
+  const i=c.assigned.indexOf(aid);
+  if(i>=0){ c.assigned.splice(i,1); }
+  else{
+    const a=state.agents.find(x=>x.id===aid);
+    if(!a||a.out>0) return;
+    if(agentBusy(state,aid)) return;
+    if(c.assigned.length>=3) return;
+    if(usedSlots(state)>=workSlots(state)) return;
+    c.assigned.push(aid);
+  }
+  render();
+}
+
+/* ---------------- Berechnung ---------------- */
+function contractPower(s,c){
+  const cat=CATS[c.cat];
+  const list=c.assigned.map(id=>s.agents.find(a=>a.id===id)).filter(Boolean);
+  const weights=[1,0.6,0.4];
+  const scored=list.map(a=>{
+    let p=0.6*a.stats[cat.primary]+0.3*a.stats[cat.secondary]+0.1*a.stats.stability;
+    let condF=0.5+0.5*(a.cond/100); if(a.cond<30) condF*=0.7;
+    let morF=0.8+0.4*(a.morale/100);
+    let syn=1; const ar=agentArch(a);
+    if(ar.cat===c.cat) syn=1.15; else if(ar.id==='gen') syn=1.07;
+    return p*condF*morF*syn;
+  }).sort((a,b)=>b-a);
+  return scored.reduce((sum,v,i)=>sum+v*(weights[i]||0),0);
+}
+function contractChance(s,c){
+  if(c.assigned.length===0) return 0;
+  return clamp(Math.round(50+(contractPower(s,c)-c.diff)*1.2),5,95);
+}
+
+/* ---------------- Agent XP / Level ---------------- */
+function xpNeed(level){ return Math.round(80*Math.pow(level,1.35)); }
+function addAgentXp(s,a,amount){
+  const t=agentTrait(a);
+  a.xp+=Math.round(amount*(t.xpMult||1));
+  while(a.xp>=xpNeed(a.level)&&a.level<30){
+    a.xp-=xpNeed(a.level); a.level++;
+    const ar=agentArch(a);
+    a.stats[ar.focus[0]]=clamp(a.stats[ar.focus[0]]+2,1,100);
+    for(let i=0;i<2;i++){ const k=pick(Object.keys(STATS)); a.stats[k]=clamp(a.stats[k]+1,1,100); }
+    a.value=Math.round(a.value*1.18);
+    addLog(s,'good','⬆ '+a.name+' erreicht Level '+a.level+'!');
+  }
+}
+function mgrXpNeed(level){ return Math.round(100*Math.pow(level,1.5)); }
+function addMgrXp(s,amount){
+  s.mgrXp+=amount;
+  while(s.mgrXp>=mgrXpNeed(s.mgrLevel)){
+    s.mgrXp-=mgrXpNeed(s.mgrLevel); s.mgrLevel++; s.skillPoints++;
+    addLog(s,'good','🎓 Manager-Level '+s.mgrLevel+' erreicht! +1 Skillpunkt.');
+  }
+}
+
+/* ---------------- Wochensimulation ---------------- */
+function simulateWeek(){
+  const s=state;
+  const report={results:[],fin:[],event:null,eventChoice:null,league:'',season:null,gameover:false};
+  let income=0, expense=0;
+  s.week_extra_cost=0;
+
+  /* 1) Aufträge auflösen */
+  for(const c of s.contracts){
+    if(c.assigned.length===0) continue;
+    const chance=contractChance(s,c);
+    const roll=Math.random()*100;
+    const agents=c.assigned.map(id=>s.agents.find(a=>a.id===id)).filter(Boolean);
+    let disasterRisk=10;
+    for(const a of agents){ const t=agentTrait(a); disasterRisk+=(t.disaster||0); disasterRisk-=a.stats.stability*0.06; }
+    disasterRisk=clamp(disasterRisk,2,30);
+    let outcome, gain=0, repGain=0, lp=0;
+    if(roll<chance){
+      const crit=Math.random()*100<18;
+      outcome=crit?'crit':'ok';
+      gain=Math.round(c.reward*(crit?1.4:1)*s.buffReward);
+      repGain=c.rep+(crit?2:0); lp=c.lp;
+      income+=gain;
+      s.rep=clamp(s.rep+repGain,0,100); s.myPts+=lp;
+      agents.forEach(a=>{ addAgentXp(s,a,c.diff*(crit?1.5:1.2)); a.morale=clamp(a.morale+(agentTrait(a).moraleMult||1)*4,0,100); });
+      addMgrXp(s,15+(crit?25:0));
+      report.results.push({cls:outcome, txt:(crit?'🌟 Glanzleistung':'✅ Erfolg')+' – „'+c.title+'“ ('+c.client+'): +'+fmt(gain)+' ¢, +'+repGain+' Rep, +'+lp+' Punkte'});
+      addLog(s,'good',(crit?'🌟 ':'✅ ')+c.title+' erfolgreich (+'+fmt(gain)+' ¢)');
+    } else {
+      const dis=Math.random()*100<disasterRisk;
+      outcome=dis?'dis':'fail';
+      if(dis){
+        const penalty=Math.round(c.reward*0.2);
+        expense+=penalty; s.rep=clamp(s.rep-6,0,100);
+        report.results.push({cls:'dis', txt:'💥 Desaster – „'+c.title+'“: Vertragsstrafe −'+fmt(penalty)+' ¢, −6 Rep'});
+        addLog(s,'bad','💥 Desaster bei '+c.title+' (−'+fmt(penalty)+' ¢)');
+      } else {
+        s.rep=clamp(s.rep-2,0,100);
+        report.results.push({cls:'fail', txt:'❌ Fehlschlag – „'+c.title+'“ ('+chance+'% Chance): −2 Rep'});
+        addLog(s,'bad','❌ '+c.title+' fehlgeschlagen');
+      }
+      agents.forEach(a=>{ addAgentXp(s,a,c.diff*0.6); a.morale=clamp(a.morale-(agentTrait(a).moraleMult||1)*(outcome==='dis'?12:7),0,100); });
+    }
+  }
+  if(report.results.length===0) report.results.push({cls:'fail',txt:'Keine Aufträge bearbeitet – die Konkurrenz schläft nicht!'});
+  s.buffReward=1;
+
+  /* 2) Training */
+  for(const tr of [s.training,s.training2]){
+    if(!tr) continue;
+    const a=s.agents.find(x=>x.id===tr.agentId);
+    if(a&&a.out===0){
+      const gain=3+rnd(0,2)+(s.skills.training||0);
+      a.stats[tr.stat]=clamp(a.stats[tr.stat]+gain,1,100);
+      a.cond=clamp(a.cond-15,0,100);
+      addAgentXp(s,a,25);
+      report.results.push({cls:'ok',txt:'🏋️ Training: '+a.name+' +'+gain+' '+STATS[tr.stat]});
+    }
+  }
+  s.training=null; s.training2=null;
+
+  /* 3) Zustand, Moral, Überhitzung */
+  const workedIds=new Set(); s.contracts.forEach(c=>c.assigned.forEach(id=>workedIds.add(id)));
+  for(const a of s.agents){
+    const t=agentTrait(a);
+    if(a.out>0){ a.out--; a.cond=clamp(a.cond+25,0,100); continue; }
+    if(workedIds.has(a.id)){
+      a.cond=clamp(a.cond-Math.round(22*(t.condMult||1)),0,100);
+      if(a.cond<30&&Math.random()<0.35){
+        a.out=rnd(1,2);
+        report.results.push({cls:'dis',txt:'🔥 Überhitzung: '+a.name+' fällt '+a.out+' Woche(n) aus!'});
+        addLog(s,'bad','🔥 '+a.name+' überhitzt ('+a.out+' Wo. Ausfall)');
+      }
+    } else {
+      a.cond=clamp(a.cond+18,0,100);
+      a.morale+=a.morale<60?2:(a.morale>60?-1:0);
+      a.morale=clamp(a.morale,0,100);
+    }
+  }
+
+  /* 4) Finanzen */
+  const salaries=s.agents.reduce((n,a)=>n+a.salary,0);
+  const energy=s.compute*80;
+  const finSkill=1-0.06*(s.skills.finanzen||0);
+  const fixcost=Math.round(LEAGUES[s.tier].fixcost*finSkill);
+  expense+=salaries+energy+fixcost;
+  s.credits+=income-expense;
+  report.fin.push(['Auftragseinnahmen','+'+fmt(income)]);
+  report.fin.push(['Gehälter','−'+fmt(salaries)]);
+  report.fin.push(['Energie (Cluster St. '+s.compute+')','−'+fmt(energy)]);
+  report.fin.push(['Fixkosten ('+LEAGUES[s.tier].name+')','−'+fmt(fixcost)]);
+  if(s.week_extra_cost) report.fin.push(['Sonderkosten (Event)','−'+fmt(s.week_extra_cost)]);
+  report.fin.push(['Bilanz',(income-expense>=0?'+':'−')+fmt(Math.abs(income-expense))]);
+
+  /* 5) Rivalen-Punkte */
+  for(const r of s.rivals){
+    const p=clamp(Math.round(r.power/25+(Math.random()-0.45)*3),0,6);
+    r.pts+=p;
+  }
+
+  /* 6) Event */
+  const ev=pick(EVENTS);
+  report.event=ev;
+  if(ev.effect){ s.lastEventNote=null; ev.effect(s); addLog(s,'ev','📡 '+ev.title); }
+
+  /* 7) Manager-XP Grundrate */
+  addMgrXp(s,20);
+
+  /* 8) Insolvenz */
+  if(s.credits<0){
+    s.insolvencyWarnings++;
+    if(s.insolvencyWarnings>=2){ report.gameover=true; }
+    else report.fin.push(['⚠ MAHNUNG','Konto im Minus! Noch 1 Woche bis zur Insolvenz.']);
+  } else s.insolvencyWarnings=0;
+
+  /* 9) Saisonende / neue Woche */
+  s.week++;
+  if(s.week>SEASON_LEN&&!report.gameover){
+    report.season=endSeason(s);
+  }
+
+  /* 10) Neue Angebote */
+  refreshContracts(s); refreshMarket(s);
+  save(); render();
+  showWeekReport(report);
+}
+
+function leagueTable(s){
+  const rows=s.rivals.map(r=>({name:r.name,pts:r.pts,me:false,power:r.power}));
+  rows.push({name:s.company,pts:s.myPts,me:true});
+  rows.sort((a,b)=>b.pts-a.pts);
+  return rows;
+}
+
+function endSeason(s){
+  const table=leagueTable(s);
+  const pos=table.findIndex(r=>r.me)+1;
+  const L=LEAGUES[s.tier];
+  const out={pos, league:L.name, moved:0, bonus:0, champion:false};
+  if(pos===1){
+    out.champion=true;
+    out.bonus=Math.round(1200*L.reward);
+    s.credits+=out.bonus;
+    s.trophies.push('🏆 Meister '+L.name+' (Saison '+s.season+')');
+    addMgrXp(s,150);
+    addLog(s,'good','🏆 MEISTER der '+L.name+'!');
+  }
+  if(pos<=2&&s.tier<LEAGUES.length-1){ out.moved=1; s.tier++; s.rep=clamp(s.rep+5,0,100); addMgrXp(s,200); addLog(s,'good','⬆ AUFSTIEG in die '+LEAGUES[s.tier].name+'!'); }
+  else if(pos>=table.length-1&&s.tier>0){ out.moved=-1; s.tier--; s.rep=clamp(s.rep-3,0,100); addLog(s,'bad','⬇ Abstieg in die '+LEAGUES[s.tier].name+'.'); }
+  s.season++; s.week=1; s.myPts=0; s.rivals=makeRivals(s.tier);
+  return out;
+}
+
+/* ---------------- Aktionen ---------------- */
+function buyAgent(id){
+  const a=state.market.find(x=>x.id===id); if(!a) return;
+  if(state.credits<a.price) return;
+  state.credits-=a.price;
+  state.market=state.market.filter(x=>x.id!==id);
+  delete a.price;
+  state.agents.push(a);
+  addLog(state,'ev','🤝 '+a.name+' verpflichtet.');
+  save(); render();
+}
+function sellAgent(id){
+  const a=state.agents.find(x=>x.id===id); if(!a) return;
+  if(state.agents.length<=1) return;
+  openModal('Verkauf bestätigen',
+    '<p>'+esc(a.name)+' für <b class="num">'+fmt(a.value)+' ¢</b> verkaufen?</p>',
+    [{label:'Verkaufen',cls:'mb-main',fn:()=>{ state.credits+=a.value; removeAgent(state,id); addLog(state,'ev','💸 '+a.name+' verkauft (+'+fmt(a.value)+' ¢)'); save(); closeModal(); render(); }},
+     {label:'Abbrechen',cls:'mb-alt',fn:closeModal}]);
+}
+function setTraining(agentId){
+  const a=state.agents.find(x=>x.id===agentId); if(!a||a.out>0) return;
+  const slot1Free=!state.training, slot2Free=trainingSlots(state)>1&&!state.training2;
+  const already=(state.training&&state.training.agentId===agentId)||(state.training2&&state.training2.agentId===agentId);
+  if(already){
+    if(state.training&&state.training.agentId===agentId) state.training=null;
+    if(state.training2&&state.training2.agentId===agentId) state.training2=null;
+    render(); return;
+  }
+  if(!slot1Free&&!slot2Free) return;
+  if(state.contracts.some(c=>c.assigned.includes(agentId))) return;
+  let opts='';
+  for(const k of Object.keys(STATS)) opts+='<option value="'+k+'">'+STATS[k]+' ('+a.stats[k]+')</option>';
+  openModal('Training: '+esc(a.name),
+    '<p class="muted" style="margin-bottom:10px">Fokus-Attribut wählen (+'+(3+(state.skills.training||0))+'–'+(5+(state.skills.training||0))+' Punkte, kostet 150 ¢, Agent arbeitet diese Woche nicht):</p>'+
+    '<select id="train-stat" style="width:100%">'+opts+'</select>',
+    [{label:'Training starten',cls:'mb-main',fn:()=>{
+        if(state.credits<150){ closeModal(); return; }
+        state.credits-=150;
+        const stat=$('train-stat').value;
+        const tr={agentId,stat};
+        if(!state.training) state.training=tr; else state.training2=tr;
+        save(); closeModal(); render();
+      }},
+     {label:'Abbrechen',cls:'mb-alt',fn:closeModal}]);
+}
+function upgradeCompute(){
+  const cost=computeCost();
+  if(state.compute>=5||state.credits<cost) return;
+  state.credits-=cost; state.compute++;
+  addLog(state,'ev','🖥 GPU-Cluster auf Stufe '+state.compute+' ausgebaut (+1 Slot).');
+  save(); render();
+}
+function computeCost(){ return [0,2500,6000,15000,40000][state.compute]||Infinity; }
+function spendSkill(key){
+  if(state.skillPoints<=0||state.skills[key]>=5) return;
+  state.skillPoints--; state.skills[key]++;
+  addLog(state,'ev','🎓 Skill „'+SKILLS[key].name+'“ auf Stufe '+state.skills[key]+'.');
+  save(); render();
+}
+
+/* ---------------- Modal ---------------- */
+let modalQueue=[];
+function openModal(title,html,buttons,evClass){
+  const w=$('modal-wrap'), c=$('modal-content');
+  c.innerHTML='<h2 class="'+(evClass||'')+'">'+title+'</h2>'+html;
+  const btnWrap=document.createElement('div'); btnWrap.className='modal-btns';
+  for(const b of buttons){
+    const el=document.createElement('button'); el.className=b.cls||'mb-alt'; el.textContent=b.label;
+    el.onclick=b.fn; btnWrap.appendChild(el);
+  }
+  c.appendChild(btnWrap);
+  w.classList.remove('hidden');
+}
+function closeModal(){
+  $('modal-wrap').classList.add('hidden');
+  if(modalQueue.length){ const next=modalQueue.shift(); next(); }
+}
+
+function showWeekReport(report){
+  if(report.gameover){ showGameOver(); return; }
+  const s=state;
+  let html='<div style="margin-bottom:14px">';
+  for(const r of report.results) html+='<div class="report-item '+r.cls+'">'+r.txt+'</div>';
+  html+='</div><h3 style="font-size:.8rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px">Finanzen</h3>';
+  for(const [k,v] of report.fin) html+='<div class="fin-row"><span>'+k+'</span><span class="num">'+v+'</span></div>';
+  const table=leagueTable(s); const pos=table.findIndex(r=>r.me)+1;
+  html+='<p style="margin-top:12px" class="muted">Tabellenplatz: <b class="acc">'+pos+'.</b> von '+table.length+' · '+LEAGUES[s.tier].name+'</p>';
+
+  modalQueue=[];
+  const ev=report.event;
+  if(ev){
+    modalQueue.push(()=>{
+      let evHtml='<p>'+ev.text+'</p>';
+      if(state.lastEventNote) evHtml+='<p class="acc" style="margin-top:8px">'+esc(state.lastEventNote)+'</p>';
+      if(ev.choices){
+        openModal('📡 '+ev.title,evHtml,ev.choices.map(ch=>({
+          label:ch.label,cls:'mb-alt',
+          fn:()=>{ const res=ch.run(state); save(); render();
+            openModal('📡 '+ev.title,'<p>'+esc(res)+'</p>',[{label:'Weiter',cls:'mb-main',fn:closeModal}],'ev'); }
+        })),'ev');
+      } else {
+        openModal('📡 '+ev.title,evHtml,[{label:'Weiter',cls:'mb-main',fn:closeModal}],'ev');
+      }
+    });
+  }
+  if(report.season){
+    const se=report.season;
+    modalQueue.push(()=>{
+      let t='<p>Saison beendet – Platz <b class="acc num">'+se.pos+'</b> in der '+se.league+'.</p>';
+      if(se.champion) t+='<p class="goldc" style="margin-top:8px">🏆 MEISTERSCHAFT! Prämie: +'+fmt(se.bonus)+' ¢</p>';
+      if(se.moved===1) t+='<p class="good" style="margin-top:8px">⬆ AUFSTIEG in die '+LEAGUES[state.tier].name+'!</p>';
+      if(se.moved===-1) t+='<p class="bad" style="margin-top:8px">⬇ Abstieg in die '+LEAGUES[state.tier].name+'.</p>';
+      if(!se.moved) t+='<p class="muted" style="margin-top:8px">Klassenerhalt – neue Saison, neues Glück.</p>';
+      openModal('Saison '+(state.season-1)+' – Abschluss',t,[{label:'Neue Saison starten',cls:'mb-main',fn:closeModal}]);
+    });
+  }
+  openModal('Wochenreport – S'+s.season+'/W'+(s.week-1<1?SEASON_LEN:s.week-1),html,[{label:'Weiter',cls:'mb-main',fn:closeModal}]);
+}
+
+function showGameOver(){
+  const s=state;
+  $('gameover-card').innerHTML=
+    '<div class="logo" style="font-size:1.5rem"><span class="bad">INSOLVENZ</span></div>'+
+    '<p class="tagline" style="margin-top:10px">'+esc(s.company)+' ist zahlungsunfähig.<br>'+
+    'Erreicht: '+LEAGUES[s.tier].name+' · Saison '+s.season+' · Manager-Level '+s.mgrLevel+'</p>'+
+    (s.trophies.length?'<p style="margin-bottom:14px">'+s.trophies.join('<br>')+'</p>':'')+
+    '<button class="btn-primary" onclick="resetGame(true)">Neu gründen</button>';
+  $('gameover-screen').classList.add('show');
+}
+
+/* ---------------- Rendering ---------------- */
+let activeTab='zentrale';
+function showTab(t){
+  activeTab=t;
+  document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('active',b.dataset.tab===t));
+  ['zentrale','auftraege','team','markt','liga'].forEach(x=>$('tab-'+x).classList.toggle('hidden',x!==t));
+  render();
+}
+
+function render(){
+  if(!state) return;
+  renderHeader();
+  if(activeTab==='zentrale') renderZentrale();
+  if(activeTab==='auftraege') renderAuftraege();
+  if(activeTab==='team') renderTeam();
+  if(activeTab==='markt') renderMarkt();
+  if(activeTab==='liga') renderLiga();
+}
+
+function renderHeader(){
+  const s=state;
+  $('h-company').textContent=s.company+' · '+s.manager;
+  $('h-league').innerHTML='🏟 <b>'+LEAGUES[s.tier].name+'</b>';
+  $('h-week').innerHTML='Saison <b>'+s.season+'</b> · Woche <b>'+s.week+'/'+SEASON_LEN+'</b>';
+  $('h-credits').textContent=fmt(s.credits)+' ¢';
+  $('h-credits').className='val num '+(s.credits<0?'bad':s.credits<800?'warn':'');
+  $('h-rep').textContent=s.rep+'/100';
+  $('h-slots').textContent=usedSlots(s)+'/'+workSlots(s);
+  $('h-mlvl').textContent='Lv '+s.mgrLevel;
+  $('h-mxp').style.width=Math.round(100*s.mgrXp/mgrXpNeed(s.mgrLevel))+'%';
+}
+
+function renderZentrale(){
+  const s=state;
+  const table=leagueTable(s); const pos=table.findIndex(r=>r.me)+1;
+  const salaries=s.agents.reduce((n,a)=>n+a.salary,0);
+  const fixcost=Math.round(LEAGUES[s.tier].fixcost*(1-0.06*(s.skills.finanzen||0)));
+  const energy=s.compute*80;
+  let skillHtml='';
+  for(const k of Object.keys(SKILLS)){
+    const lvl=s.skills[k];
+    let pips=''; for(let i=0;i<5;i++) pips+='<div class="pip'+(i<lvl?' on':'')+'"></div>';
+    skillHtml+='<div class="skill"><div><b>'+SKILLS[k].name+'</b><br><span class="muted" style="font-size:.75rem">'+SKILLS[k].desc+'</span></div>'+
+      '<div style="display:flex;align-items:center;gap:10px"><div class="pips">'+pips+'</div>'+
+      '<button class="btn-sm" onclick="spendSkill(\''+k+'\')" '+(s.skillPoints<=0||lvl>=5?'disabled':'')+'>+</button></div></div>';
+  }
+  let logHtml='';
+  for(const l of s.log) logHtml+='<div class="lg-'+l.type+'"><span class="muted num" style="font-size:.7rem">'+l.w+'</span> '+esc(l.msg)+'</div>';
+  const cc=computeCost();
+  $('tab-zentrale').innerHTML=
+  '<div class="grid grid-2">'+
+    '<div class="card"><h3>Lagebericht</h3>'+
+      '<div class="kpi"><span>Liga</span><span class="v acc">'+LEAGUES[s.tier].name+' · Platz '+pos+'</span></div>'+
+      '<div class="kpi"><span>Punkte (Saison)</span><span class="v">'+s.myPts+'</span></div>'+
+      '<div class="kpi"><span>Reputation</span><span class="v">'+s.rep+'/100</span></div>'+
+      '<div class="kpi"><span>Agenten im Kader</span><span class="v">'+s.agents.length+'</span></div>'+
+      '<div class="kpi"><span>Trophäen</span><span class="v">'+(s.trophies.length||'–')+'</span></div>'+
+    '</div>'+
+    '<div class="card"><h3>Wöchentliche Kosten</h3>'+
+      '<div class="kpi"><span>Gehälter</span><span class="v">−'+fmt(salaries)+' ¢</span></div>'+
+      '<div class="kpi"><span>Energie (Cluster)</span><span class="v">−'+fmt(energy)+' ¢</span></div>'+
+      '<div class="kpi"><span>Fixkosten Liga</span><span class="v">−'+fmt(fixcost)+' ¢</span></div>'+
+      '<div class="kpi"><span><b>Summe</b></span><span class="v bad">−'+fmt(salaries+energy+fixcost)+' ¢</span></div>'+
+    '</div>'+
+    '<div class="card"><h3>GPU-Cluster (Stufe '+s.compute+'/5)</h3>'+
+      '<p class="muted" style="font-size:.85rem;margin-bottom:10px">Bestimmt deine Arbeits-Slots: <b class="acc">'+workSlots(s)+'</b> Agenten können pro Woche eingesetzt werden.</p>'+
+      (s.compute<5
+        ?'<button class="btn-sm" onclick="upgradeCompute()" '+(s.credits<cc?'disabled':'')+'>Ausbau auf Stufe '+(s.compute+1)+' – '+fmt(cc)+' ¢</button>'
+        :'<p class="good">Maximale Ausbaustufe erreicht.</p>')+
+    '</div>'+
+    '<div class="card"><h3>Manager-Skilltree <span class="goldc">('+s.skillPoints+' Punkte frei)</span></h3>'+skillHtml+'</div>'+
+    '<div class="card" style="grid-column:1/-1"><h3>Logbuch</h3><div class="log">'+(logHtml||'<div>Noch keine Einträge.</div>')+'</div></div>'+
+  '</div>';
+}
+
+function renderAuftraege(){
+  const s=state;
+  let html='<div class="slots-info">Arbeits-Slots: <b class="acc num">'+usedSlots(s)+'/'+workSlots(s)+'</b> belegt · max. 3 Agenten pro Auftrag · Klick auf einen Agenten-Chip weist zu.</div><div class="grid grid-2">';
+  for(const c of s.contracts){
+    const chance=contractChance(s,c);
+    const chColor=chance>=70?'good':chance>=45?'warn':'bad';
+    let chips='';
+    for(const a of s.agents){
+      const sel=c.assigned.includes(a.id);
+      const busyElsewhere=!sel&&agentBusy(s,a.id);
+      const noSlot=!sel&&usedSlots(s)>=workSlots(s);
+      const dis=a.out>0||busyElsewhere||(!sel&&(noSlot||c.assigned.length>=3));
+      chips+='<button class="chip'+(sel?' sel':'')+'" '+(dis?'disabled':'')+' onclick="toggleAssign('+c.id+','+a.id+')">'+
+        esc(a.name)+(a.out>0?' 🔥':busyElsewhere?' ⏳':'')+'</button>';
+    }
+    html+='<div class="contract'+(c.assigned.length?' assigned-any':'')+'">'+
+      '<div class="c-head"><div><div class="c-title">'+esc(c.title)+'</div><div class="c-client">'+esc(c.client)+'</div></div>'+
+      '<div style="display:flex;gap:6px;flex-direction:column;align-items:flex-end"><span class="tag cat">'+CATS[c.cat].label+'</span><span class="tag">'+c.label+'</span></div></div>'+
+      '<div class="c-row">'+
+        '<span>💰 <b class="num">'+fmt(c.reward)+' ¢</b></span>'+
+        '<span>⭐ +'+c.rep+' Rep</span>'+
+        '<span>🏟 +'+c.lp+' Pkt</span>'+
+        '<span>🎯 Anforderung: '+STATS[CATS[c.cat].primary]+' / '+STATS[CATS[c.cat].secondary]+'</span>'+
+      '</div>'+
+      '<div class="c-row"><span>Erfolgschance: <span class="chance '+chColor+'">'+(c.assigned.length?chance+' %':'–')+'</span></span></div>'+
+      '<div class="chips">'+chips+'</div>'+
+    '</div>';
+  }
+  html+='</div>';
+  $('tab-auftraege').innerHTML=html;
+}
+
+function condColor(v){ return v>=60?'var(--good)':v>=30?'var(--warn)':'var(--bad)'; }
+
+function renderTeam(){
+  const s=state;
+  const trainingIds=[s.training,s.training2].filter(Boolean).map(t=>t.agentId);
+  let html='<div class="slots-info">Trainings-Slots: <b class="acc2 num">'+trainingIds.length+'/'+trainingSlots(s)+'</b> · Training kostet 150 ¢ und den Arbeitseinsatz der Woche.</div><div class="grid grid-3">';
+  for(const a of s.agents){
+    const ar=agentArch(a), t=agentTrait(a);
+    let statHtml='';
+    for(const k of Object.keys(STATS)){
+      statHtml+='<div class="statrow"><span class="sl">'+STATS[k]+'</span><div class="statbar"><div style="width:'+a.stats[k]+'%"></div></div><span class="sv">'+a.stats[k]+'</span></div>';
+    }
+    const inTraining=trainingIds.includes(a.id);
+    const working=s.contracts.some(c=>c.assigned.includes(a.id));
+    html+='<div class="agent'+(a.out>0?' out':'')+'">'+
+      '<div class="a-head"><span class="a-name">'+esc(a.name)+'</span><span class="num muted">Lv '+a.level+'</span></div>'+
+      '<div class="a-arch">'+ar.name+(a.out>0?' · <span class="bad">🔥 Ausfall: '+a.out+' Wo.</span>':working?' · <span class="acc">im Einsatz</span>':inTraining?' · <span class="acc2">im Training</span>':'')+'</div>'+
+      '<div class="a-trait">'+t.name+' – '+t.desc+'</div>'+
+      statHtml+
+      '<div class="xpbar"><div style="width:'+Math.round(100*a.xp/xpNeed(a.level))+'%"></div></div>'+
+      '<div class="meters">'+
+        '<div class="meter"><div class="lbl"><span>Zustand</span><span class="num">'+a.cond+'</span></div><div class="mbar"><div style="width:'+a.cond+'%;background:'+condColor(a.cond)+'"></div></div></div>'+
+        '<div class="meter"><div class="lbl"><span>Moral</span><span class="num">'+a.morale+'</span></div><div class="mbar"><div style="width:'+a.morale+'%;background:'+condColor(a.morale)+'"></div></div></div>'+
+      '</div>'+
+      '<div class="a-actions">'+
+        '<span class="muted" style="font-size:.75rem">Gehalt <b class="num">'+fmt(a.salary)+'</b> ¢/Wo · Wert <b class="num">'+fmt(a.value)+'</b> ¢</span>'+
+        '<button class="btn-sm'+(inTraining?' training-on':'')+'" onclick="setTraining('+a.id+')" '+(a.out>0||working||(!inTraining&&trainingIds.length>=trainingSlots(s))?'disabled':'')+'>'+(inTraining?'Training ✓':'Trainieren')+'</button>'+
+        '<button class="btn-sm danger" onclick="sellAgent('+a.id+')" '+(s.agents.length<=1?'disabled':'')+'>Verkaufen</button>'+
+      '</div>'+
+    '</div>';
+  }
+  html+='</div>';
+  $('tab-team').innerHTML=html;
+}
+
+function renderMarkt(){
+  const s=state;
+  let html='<div class="slots-info">Scouting-Stufe <b class="acc2">'+(s.skills.scouting||0)+'</b> · Der Markt wird jede Woche neu bestückt.</div><div class="grid grid-3">';
+  if(s.market.length===0) html+='<p class="muted">Diese Woche keine Angebote.</p>';
+  for(const a of s.market){
+    const ar=agentArch(a), t=agentTrait(a);
+    let statHtml='';
+    for(const k of Object.keys(STATS)){
+      statHtml+='<div class="statrow"><span class="sl">'+STATS[k]+'</span><div class="statbar"><div style="width:'+a.stats[k]+'%"></div></div><span class="sv">'+a.stats[k]+'</span></div>';
+    }
+    html+='<div class="agent">'+
+      '<div class="a-head"><span class="a-name">'+esc(a.name)+'</span><span class="num muted">Lv '+a.level+'</span></div>'+
+      '<div class="a-arch">'+ar.name+'</div>'+
+      '<div class="a-trait">'+t.name+' – '+t.desc+'</div>'+
+      statHtml+
+      '<div class="a-actions">'+
+        '<span class="muted" style="font-size:.75rem">Gehalt <b class="num">'+fmt(a.salary)+'</b> ¢/Wo</span>'+
+        '<button class="btn-sm" onclick="buyAgent('+a.id+')" '+(s.credits<a.price?'disabled':'')+'>Kaufen – <b class="num">'+fmt(a.price)+' ¢</b></button>'+
+      '</div>'+
+    '</div>';
+  }
+  html+='</div>';
+  $('tab-markt').innerHTML=html;
+}
+
+function renderLiga(){
+  const s=state;
+  const table=leagueTable(s);
+  let rows='';
+  table.forEach((r,i)=>{
+    const promo=i<2, releg=i>=table.length-2;
+    rows+='<tr class="'+(r.me?'me ':'')+(promo?'promo':releg?'releg':'')+'"><td class="num">'+(i+1)+'</td><td>'+esc(r.name)+(r.me?' ★':'')+'</td><td class="num">'+r.pts+'</td></tr>';
+  });
+  let ladder='';
+  LEAGUES.slice().reverse().forEach((L,i)=>{
+    const tier=LEAGUES.length-1-i;
+    ladder+='<div class="kpi"><span>'+(tier===s.tier?'▶ ':'')+L.name+'</span><span class="v '+(tier===s.tier?'acc':'muted')+'">'+(tier===s.tier?'DEINE LIGA':'Tier '+(5-tier))+'</span></div>';
+  });
+  let troph='';
+  if(s.trophies.length) troph='<div class="card" style="margin-top:16px"><h3>Trophäenschrank</h3>'+s.trophies.map(t=>'<div class="kpi"><span>'+esc(t)+'</span></div>').join('')+'</div>';
+  $('tab-liga').innerHTML=
+  '<div class="grid grid-2">'+
+    '<div class="card"><h3>'+LEAGUES[s.tier].name+' · Woche '+s.week+'/'+SEASON_LEN+'</h3>'+
+      '<table><thead><tr><th class="num">#</th><th>Agentur</th><th class="num">Punkte</th></tr></thead><tbody>'+rows+'</tbody></table>'+
+      '<p class="muted" style="font-size:.75rem;margin-top:10px"><span class="good">▎</span> Aufstieg (Platz 1–2) · <span class="bad">▎</span> Abstieg (letzte 2)</p>'+
+    '</div>'+
+    '<div><div class="card"><h3>Liga-Pyramide</h3>'+ladder+'</div>'+troph+'</div>'+
+  '</div>';
+}
+
+/* ---------------- Save / Load ---------------- */
+function save(){ try{ localStorage.setItem(SAVE_KEY,JSON.stringify({state,uid})); }catch(e){} }
+function load(){
+  try{
+    const raw=localStorage.getItem(SAVE_KEY);
+    if(!raw) return false;
+    const d=JSON.parse(raw);
+    if(!d.state||!d.state.company) return false;
+    state=d.state; uid=d.uid||1000;
+    return true;
+  }catch(e){ return false; }
+}
+function resetGame(skipConfirm){
+  const doReset=()=>{ localStorage.removeItem(SAVE_KEY); location.reload(); };
+  if(skipConfirm===true){ doReset(); return; }
+  openModal('Spielstand löschen?','<p>Der komplette Fortschritt geht verloren.</p>',
+    [{label:'Ja, neu starten',cls:'mb-main',fn:doReset},{label:'Abbrechen',cls:'mb-alt',fn:closeModal}]);
+}
+
+/* ---------------- Init ---------------- */
+function foundCompany(){
+  const company=$('inp-company').value.trim()||'';
+  const manager=$('inp-manager').value.trim()||'';
+  if(!company||!manager){
+    $('inp-company').style.borderColor=company?'var(--line)':'var(--bad)';
+    $('inp-manager').style.borderColor=manager?'var(--line)':'var(--bad)';
+    return;
+  }
+  state=newState(company,manager);
+  save(); startUI();
+}
+function continueGame(){ if(load()) startUI(); }
+function startUI(){
+  $('start-screen').classList.add('hidden');
+  $('game').classList.remove('hidden');
+  showTab('zentrale');
+}
+(function init(){
+  if(localStorage.getItem(SAVE_KEY)) $('btn-continue').classList.remove('hidden');
+})();
+</script>
+</body>
+</html>
