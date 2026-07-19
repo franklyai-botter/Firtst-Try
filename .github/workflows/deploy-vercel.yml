@@ -1,0 +1,42 @@
+name: Deploy Neural Manager to Vercel
+
+# Deployt den Spiel-Prototyp (ai-manager/) zu Vercel.
+# Voraussetzung: Repository-Secret VERCEL_TOKEN
+#   (Token erzeugen: https://vercel.com/account/tokens
+#    Secret anlegen: Repo -> Settings -> Secrets and variables -> Actions)
+# Ohne Secret wird der Lauf sauber uebersprungen.
+
+on:
+  push:
+    branches: [master]
+    paths: ['ai-manager/**']
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+    steps:
+      - name: Token vorhanden?
+        id: check
+        run: |
+          if [ -n "$VERCEL_TOKEN" ]; then
+            echo "has=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Kein VERCEL_TOKEN-Secret gesetzt - Deploy uebersprungen."
+          fi
+
+      - name: Checkout
+        if: steps.check.outputs.has == 'true'
+        uses: actions/checkout@v4
+
+      - name: Deploy zu Vercel (Projekt neural-manager)
+        if: steps.check.outputs.has == 'true'
+        working-directory: ai-manager
+        run: |
+          npm install -g vercel@latest
+          vercel deploy . --prod --yes --token "$VERCEL_TOKEN" | tee deploy-url.txt
+          echo "### Vercel-Deploy" >> "$GITHUB_STEP_SUMMARY"
+          echo "URL: $(tail -1 deploy-url.txt)" >> "$GITHUB_STEP_SUMMARY"
