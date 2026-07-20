@@ -32,7 +32,7 @@ test.describe('Neural Manager – Smoke Tests', () => {
     await page.click('#btn-found');
     await expect(page.locator('#start-screen')).toBeHidden();
     await expect(page.locator('#h-credits')).toBeVisible();
-    await expect(page.locator('#h-league')).toContainText('Lokale Kunden');
+    await expect(page.locator('#h-league')).toContainText('Kleinstbetriebe');
   });
 
   test('Kompletter Spielzug: zuweisen, simulieren, Report schließen', async ({ page }) => {

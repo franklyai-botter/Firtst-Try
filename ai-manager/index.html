@@ -2,159 +2,211 @@
 <html lang="de">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="version" content="0.2.1">
-<title>NEURAL MANAGER – Der KI-Agentur-Manager</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="version" content="0.3.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#150f35">
+<title>KI-WERKSTATT – Das AI-Enabling-Spiel</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;800;900&display=swap" rel="stylesheet">
 <style>
+/* =====================================================================
+   KI-WERKSTATT v0.3 – Mobile-Game-Look (iOS-Browser-Game-Stil)
+   Theme & Assets: alles inline (SVG/CSS), echte Bilder später über
+   die ASSET-Slots austauschbar (siehe BRAND/ASSETS im Script).
+   ===================================================================== */
 :root{
-  --bg:#0b1020; --bg2:#0e1530; --panel:#141b31; --panel2:#1a2342;
-  --line:#26304f; --text:#dbe4ff; --muted:#8b96b8;
-  --accent:#22d3ee; --accent2:#a78bfa;
-  --good:#34d399; --warn:#fbbf24; --bad:#f87171; --gold:#f0c040;
-  --radius:12px; --font:'Space Grotesk',system-ui,sans-serif;
-  --mono:'IBM Plex Mono',ui-monospace,monospace;
+  --bg1:#161244; --bg2:#0e0c2a;
+  --glass:rgba(255,255,255,.07); --glass2:rgba(255,255,255,.11);
+  --line:rgba(255,255,255,.14);
+  --text:#f2f1ff; --muted:#a7a3d1;
+  --vio:#8b5cf6; --cyan:#22d3ee; --pink:#ec4899;
+  --good:#34d399; --warn:#fbbf24; --bad:#f87171; --gold:#fbbf24;
+  --grad-main:linear-gradient(135deg,#8b5cf6,#22d3ee);
+  --grad-cta:linear-gradient(135deg,#f59e0b,#ec4899);
+  --r:22px; --font:'Nunito',system-ui,sans-serif;
 }
-*{margin:0;padding:0;box-sizing:border-box}
-body{background:radial-gradient(1200px 800px at 70% -10%,#1b2a5e 0%,var(--bg) 55%);color:var(--text);font-family:var(--font);min-height:100vh}
-button{font-family:var(--font);cursor:pointer;border:none;border-radius:8px}
-button:disabled{opacity:.45;cursor:not-allowed}
-input,select{font-family:var(--font);background:var(--bg2);color:var(--text);border:1px solid var(--line);border-radius:8px;padding:8px 10px}
-.num{font-family:var(--mono)}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{
+  font-family:var(--font);color:var(--text);min-height:100vh;font-weight:600;
+  background:radial-gradient(900px 600px at 85% -5%,#3b1e7a 0%,transparent 55%),
+             radial-gradient(700px 500px at -10% 30%,#0e4b5e 0%,transparent 50%),
+             linear-gradient(165deg,var(--bg1),var(--bg2) 70%);
+  background-attachment:fixed;
+}
+button{font-family:var(--font);cursor:pointer;border:none;border-radius:14px;font-weight:800}
+button:disabled{opacity:.4;cursor:not-allowed}
+button:not(:disabled):active{transform:scale(.96)}
+input,select{font-family:var(--font);background:rgba(0,0,0,.28);color:var(--text);border:1px solid var(--line);border-radius:14px;padding:12px 14px;font-weight:700}
+.num{font-variant-numeric:tabular-nums}
 .hidden{display:none!important}
+.good{color:var(--good)}.bad{color:var(--bad)}.warn{color:var(--warn)}.muted{color:var(--muted)}
+.vio{color:#c4b5fd}.cy{color:#67e8f9}.goldc{color:var(--gold)}
 
-/* ---------- Start screen ---------- */
-#start-screen{position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;background:radial-gradient(900px 600px at 50% 20%,#1b2a5e 0%,var(--bg) 60%)}
-.start-card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:40px 44px;max-width:520px;width:92%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.5)}
-.logo{font-size:2rem;font-weight:700;letter-spacing:.12em}
-.logo .n1{color:var(--accent)} .logo .n2{color:var(--accent2)}
-.tagline{color:var(--muted);margin:8px 0 26px;font-size:.95rem}
-.start-card label{display:block;text-align:left;color:var(--muted);font-size:.8rem;margin:14px 0 4px;text-transform:uppercase;letter-spacing:.08em}
+@keyframes popIn{from{opacity:0;transform:translateY(14px) scale(.96)}to{opacity:1;transform:none}}
+@keyframes floaty{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+@keyframes pulseGlow{0%,100%{box-shadow:0 0 0 0 rgba(139,92,246,.55)}50%{box-shadow:0 0 0 12px rgba(139,92,246,0)}}
+@keyframes shimmer{from{background-position:-200% 0}to{background-position:200% 0}}
+@keyframes confFall{to{transform:translateY(108vh) rotate(760deg)}}
+
+/* ---------- Start ---------- */
+#start-screen{position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;padding:16px;
+  background:radial-gradient(800px 500px at 50% 0%,#3b1e7a 0%,transparent 60%),linear-gradient(165deg,var(--bg1),var(--bg2))}
+.start-card{background:var(--glass);backdrop-filter:blur(18px);border:1px solid var(--line);border-radius:28px;
+  padding:38px 34px;max-width:520px;width:100%;text-align:center;box-shadow:0 30px 80px rgba(0,0,0,.55);animation:popIn .5s ease}
+.logo-badge{width:92px;height:92px;margin:0 auto 14px;border-radius:26px;background:var(--grad-main);
+  display:flex;align-items:center;justify-content:center;font-size:3rem;box-shadow:0 14px 34px rgba(139,92,246,.45);animation:floaty 3.5s ease-in-out infinite}
+.logo{font-size:1.8rem;font-weight:900;letter-spacing:.04em}
+.logo b{background:var(--grad-main);-webkit-background-clip:text;background-clip:text;color:transparent}
+.tagline{color:var(--muted);margin:10px 0 24px;font-size:.95rem;line-height:1.5}
+.start-card label{display:block;text-align:left;color:var(--muted);font-size:.78rem;margin:14px 0 6px;font-weight:800;text-transform:uppercase;letter-spacing:.08em}
 .start-card input{width:100%;font-size:1rem}
-.btn-primary{background:linear-gradient(135deg,var(--accent),#0ea5c9);color:#04222b;font-weight:700;padding:12px 22px;font-size:1rem;margin-top:22px;width:100%}
-.btn-primary:hover{filter:brightness(1.1)}
-.btn-ghost{background:transparent;border:1px solid var(--line);color:var(--muted);padding:10px 18px;margin-top:10px;width:100%}
-.btn-ghost:hover{color:var(--text);border-color:var(--accent)}
+.btn-primary{background:var(--grad-main);color:#fff;padding:15px 22px;font-size:1.05rem;margin-top:24px;width:100%;
+  box-shadow:0 12px 28px rgba(139,92,246,.4)}
+.btn-primary:hover{filter:brightness(1.08)}
+.btn-ghost{background:transparent;border:1.5px solid var(--line);color:var(--muted);padding:12px 18px;margin-top:12px;width:100%}
+.btn-ghost:hover{color:var(--text);border-color:var(--vio)}
 
 /* ---------- Header ---------- */
-header{position:sticky;top:0;z-index:20;background:rgba(11,16,32,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);padding:10px 18px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
-.h-logo{font-weight:700;letter-spacing:.08em;font-size:1.05rem;white-space:nowrap}
-.h-company{color:var(--muted);font-size:.85rem}
-.badge{background:var(--panel2);border:1px solid var(--line);border-radius:999px;padding:4px 12px;font-size:.8rem;white-space:nowrap}
-.badge b{color:var(--accent)}
-.res{display:flex;gap:14px;flex-wrap:wrap;margin-left:auto;align-items:center}
-.res-item{display:flex;flex-direction:column;align-items:flex-end;min-width:70px}
-.res-item .lbl{font-size:.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
-.res-item .val{font-family:var(--mono);font-size:.95rem}
-#btn-sim{background:linear-gradient(135deg,var(--accent2),#7c5ce0);color:#150b2e;font-weight:700;padding:10px 20px;font-size:.95rem}
-#btn-sim:hover{filter:brightness(1.12)}
-#btn-reset{background:transparent;border:1px solid var(--line);color:var(--muted);padding:8px 12px;font-size:.75rem}
-.mgr-bar{width:110px;height:6px;background:var(--bg2);border-radius:3px;overflow:hidden;margin-top:3px}
-.mgr-bar>div{height:100%;background:var(--gold)}
+header{position:sticky;top:0;z-index:20;background:rgba(14,12,42,.82);backdrop-filter:blur(16px);
+  border-bottom:1px solid var(--line);padding:10px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.h-badge{width:44px;height:44px;border-radius:14px;background:var(--grad-main);display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex:none}
+.h-name{font-weight:900;line-height:1.15}
+.h-sub{color:var(--muted);font-size:.72rem;font-weight:700}
+.pill{background:var(--glass2);border:1px solid var(--line);border-radius:999px;padding:6px 14px;font-size:.8rem;font-weight:800;white-space:nowrap}
+.res{display:flex;gap:14px;margin-left:auto;align-items:center;flex-wrap:wrap}
+.res-item{text-align:right;min-width:64px}
+.res-item .lbl{font-size:.62rem;color:var(--muted);font-weight:800;text-transform:uppercase;letter-spacing:.07em}
+.res-item .val{font-size:.98rem;font-weight:900}
+.mgr-bar{width:100px;height:7px;background:rgba(0,0,0,.35);border-radius:4px;overflow:hidden;margin-top:4px}
+.mgr-bar>div{height:100%;background:linear-gradient(90deg,var(--gold),#fde68a);border-radius:4px}
+#btn-sim{background:var(--grad-cta);color:#fff;padding:13px 22px;font-size:1rem;box-shadow:0 10px 26px rgba(236,72,153,.4);animation:pulseGlow 2.4s infinite}
+#btn-reset{background:transparent;border:1.5px solid var(--line);color:var(--muted);padding:9px 12px;font-size:.72rem}
 
 /* ---------- Tabs ---------- */
-nav{display:flex;gap:4px;padding:10px 18px 0;border-bottom:1px solid var(--line);flex-wrap:wrap}
-nav button{background:transparent;color:var(--muted);padding:10px 18px;border-radius:8px 8px 0 0;font-size:.95rem;border-bottom:2px solid transparent}
-nav button.active{color:var(--accent);border-bottom-color:var(--accent);background:rgba(34,211,238,.06)}
-nav button:hover{color:var(--text)}
-main{padding:20px 18px 60px;max-width:1280px;margin:0 auto}
+nav{display:flex;gap:8px;padding:14px 16px 4px;flex-wrap:wrap;max-width:1280px;margin:0 auto}
+nav button{background:var(--glass);border:1px solid var(--line);color:var(--muted);padding:10px 18px;border-radius:999px;font-size:.9rem;font-weight:800}
+nav button.active{background:var(--grad-main);color:#fff;border-color:transparent;box-shadow:0 8px 20px rgba(139,92,246,.35)}
+main{padding:16px 16px 80px;max-width:1280px;margin:0 auto}
 
-/* ---------- Cards / grid ---------- */
+/* ---------- Cards ---------- */
 .grid{display:grid;gap:16px}
 .grid-2{grid-template-columns:repeat(auto-fit,minmax(340px,1fr))}
 .grid-3{grid-template-columns:repeat(auto-fill,minmax(300px,1fr))}
-.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:16px}
-.card h3{font-size:.85rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:12px}
-.kpi{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px dashed var(--line);font-size:.9rem}
+.card{background:var(--glass);backdrop-filter:blur(14px);border:1px solid var(--line);border-radius:var(--r);padding:18px;box-shadow:0 12px 34px rgba(0,0,0,.28)}
+.card h3{font-size:.78rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:12px;font-weight:900}
+.kpi{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px dashed var(--line);font-size:.9rem;gap:8px}
 .kpi:last-child{border-bottom:none}
-.kpi .v{font-family:var(--mono)}
-.good{color:var(--good)} .bad{color:var(--bad)} .warn{color:var(--warn)} .muted{color:var(--muted)} .acc{color:var(--accent)} .acc2{color:var(--accent2)} .goldc{color:var(--gold)}
+.kpi .v{font-weight:900}
 
-/* ---------- Contracts ---------- */
-.contract{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:16px;display:flex;flex-direction:column;gap:10px}
-.contract.assigned-any{border-color:var(--accent)}
-.c-head{display:flex;justify-content:space-between;gap:8px;align-items:baseline}
-.c-title{font-weight:700}
-.c-client{color:var(--muted);font-size:.82rem}
-.tag{font-size:.7rem;padding:2px 9px;border-radius:999px;border:1px solid var(--line);color:var(--muted);white-space:nowrap}
-.tag.cat{border-color:var(--accent2);color:var(--accent2)}
-.c-row{display:flex;gap:14px;flex-wrap:wrap;font-size:.85rem}
-.chance{font-family:var(--mono);font-weight:600}
-.chips{display:flex;gap:6px;flex-wrap:wrap}
-.chip{background:var(--bg2);border:1px solid var(--line);color:var(--text);border-radius:999px;padding:4px 12px;font-size:.8rem}
-.chip.sel{background:rgba(34,211,238,.15);border-color:var(--accent);color:var(--accent)}
-.chip:disabled{opacity:.35}
-.slots-info{margin-bottom:14px;color:var(--muted);font-size:.9rem}
+/* ---------- Projekte ---------- */
+.contract{background:var(--glass);backdrop-filter:blur(14px);border:1.5px solid var(--line);border-radius:var(--r);padding:18px;display:flex;flex-direction:column;gap:12px;box-shadow:0 12px 34px rgba(0,0,0,.28);position:relative;overflow:hidden}
+.contract.assigned-any{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(34,211,238,.18),0 12px 34px rgba(0,0,0,.28)}
+.contract.locked{opacity:.85}
+.c-top{display:flex;gap:12px;align-items:center}
+.client-logo{width:52px;height:52px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:1.15rem;font-weight:900;color:#fff;flex:none;box-shadow:0 8px 18px rgba(0,0,0,.3)}
+.c-title{font-weight:900;font-size:1.02rem;line-height:1.2}
+.c-client{color:var(--muted);font-size:.8rem;font-weight:700}
+.uc-badge{margin-left:auto;flex:none;width:44px;height:44px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;box-shadow:0 6px 16px rgba(0,0,0,.3)}
+.tags{display:flex;gap:6px;flex-wrap:wrap}
+.tag{font-size:.7rem;padding:4px 11px;border-radius:999px;border:1px solid var(--line);color:var(--muted);font-weight:800;background:rgba(0,0,0,.18)}
+.tag.uc{color:#67e8f9;border-color:rgba(103,232,249,.4)}
+.c-row{display:flex;gap:14px;flex-wrap:wrap;font-size:.86rem;align-items:center;font-weight:700}
+.chance{font-weight:900}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{background:rgba(0,0,0,.25);border:1.5px solid var(--line);color:var(--text);border-radius:999px;padding:5px 12px 5px 5px;font-size:.8rem;display:flex;align-items:center;gap:7px;font-weight:800}
+.chip .mini{width:26px;height:26px;border-radius:50%;overflow:hidden;flex:none}
+.chip svg{display:block}
+.chip.sel{background:rgba(34,211,238,.16);border-color:var(--cyan);color:#a5f3fc}
+.addon{display:flex;align-items:center;gap:8px;font-size:.8rem;font-weight:800}
+.addon button{background:rgba(0,0,0,.25);border:1.5px solid var(--line);color:var(--muted);padding:6px 12px;font-size:.78rem;border-radius:999px}
+.addon button.on{background:rgba(52,211,153,.16);border-color:var(--good);color:#a7f3d0}
+.lock-hint{background:rgba(0,0,0,.3);border:1.5px dashed var(--line);border-radius:14px;padding:10px 12px;font-size:.82rem;color:var(--warn);font-weight:800;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.lock-hint button{background:var(--grad-main);color:#fff;padding:6px 12px;font-size:.76rem;border-radius:999px}
+.slots-info{margin:2px 2px 14px;color:var(--muted);font-size:.88rem;font-weight:700}
 
-/* ---------- Agents ---------- */
-.agent{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:16px}
+/* ---------- Team ---------- */
+.agent{background:var(--glass);backdrop-filter:blur(14px);border:1px solid var(--line);border-radius:var(--r);padding:18px;box-shadow:0 12px 34px rgba(0,0,0,.28)}
 .agent.out{border-color:var(--bad)}
-.a-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px}
-.a-name{font-weight:700;font-size:1.05rem}
-.a-arch{color:var(--accent2);font-size:.8rem}
-.a-trait{color:var(--muted);font-size:.78rem;margin-bottom:8px}
-.statrow{display:flex;align-items:center;gap:8px;font-size:.78rem;margin:3px 0}
-.statrow .sl{width:74px;color:var(--muted)}
-.statbar{flex:1;height:7px;background:var(--bg2);border-radius:4px;overflow:hidden}
-.statbar>div{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2))}
-.statrow .sv{font-family:var(--mono);width:26px;text-align:right}
-.meters{display:flex;gap:12px;margin:10px 0;font-size:.78rem}
+.a-top{display:flex;gap:12px;align-items:center;margin-bottom:8px}
+.avatar{width:60px;height:60px;border-radius:18px;overflow:hidden;flex:none;box-shadow:0 8px 18px rgba(0,0,0,.35)}
+.avatar svg{display:block}
+.a-name{font-weight:900;font-size:1.05rem}
+.a-role{color:#c4b5fd;font-size:.78rem;font-weight:800}
+.a-trait{color:var(--muted);font-size:.74rem;font-weight:700}
+.lvl-chip{margin-left:auto;background:rgba(0,0,0,.3);border:1px solid var(--line);border-radius:12px;padding:5px 10px;font-size:.78rem;font-weight:900;flex:none}
+.statrow{display:flex;align-items:center;gap:8px;font-size:.76rem;margin:4px 0;font-weight:700}
+.statrow .sl{width:96px;color:var(--muted)}
+.statbar{flex:1;height:8px;background:rgba(0,0,0,.32);border-radius:5px;overflow:hidden}
+.statbar>div{height:100%;background:var(--grad-main);border-radius:5px}
+.statrow .sv{width:26px;text-align:right;font-weight:900}
+.xpbar{height:6px;background:rgba(0,0,0,.32);border-radius:4px;overflow:hidden;margin-top:6px}
+.xpbar>div{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--gold),#fde68a,var(--gold));background-size:200% 100%;animation:shimmer 2.5s linear infinite}
+.meters{display:flex;gap:12px;margin:10px 0 4px;font-size:.74rem;font-weight:800}
 .meter{flex:1}
 .meter .lbl{color:var(--muted);display:flex;justify-content:space-between}
-.mbar{height:6px;background:var(--bg2);border-radius:3px;overflow:hidden;margin-top:3px}
-.mbar>div{height:100%}
-.a-actions{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;align-items:center}
-.btn-sm{background:var(--panel2);border:1px solid var(--line);color:var(--text);padding:6px 12px;font-size:.8rem}
-.btn-sm:hover{border-color:var(--accent)}
+.mbar{height:7px;background:rgba(0,0,0,.32);border-radius:4px;overflow:hidden;margin-top:4px}
+.mbar>div{height:100%;border-radius:4px}
+.a-actions{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;align-items:center}
+.btn-sm{background:var(--glass2);border:1.5px solid var(--line);color:var(--text);padding:8px 14px;font-size:.8rem;border-radius:12px}
+.btn-sm:hover{border-color:var(--vio)}
 .btn-sm.danger:hover{border-color:var(--bad);color:var(--bad)}
-.btn-sm.training-on{background:rgba(167,139,250,.2);border-color:var(--accent2);color:var(--accent2)}
-.xpbar{height:5px;background:var(--bg2);border-radius:3px;overflow:hidden;margin-top:4px}
-.xpbar>div{height:100%;background:var(--gold)}
+.btn-sm.training-on{background:rgba(139,92,246,.22);border-color:var(--vio);color:#ddd6fe}
+.btn-buy{background:var(--grad-main);color:#fff;padding:9px 16px;font-size:.82rem;border-radius:12px;box-shadow:0 8px 18px rgba(139,92,246,.35)}
 
-/* ---------- League table ---------- */
-table{width:100%;border-collapse:collapse;font-size:.9rem}
-th{font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);text-align:left;padding:6px 8px;border-bottom:1px solid var(--line)}
-td{padding:7px 8px;border-bottom:1px solid rgba(38,48,79,.5)}
-tr.me td{background:rgba(34,211,238,.08);font-weight:700}
-tr.promo td:first-child{border-left:3px solid var(--good)}
-tr.releg td:first-child{border-left:3px solid var(--bad)}
-td.num,th.num{text-align:right;font-family:var(--mono)}
+/* ---------- Toolbox ---------- */
+.tool{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px dashed var(--line)}
+.tool:last-child{border:none}
+.tool-icon{width:46px;height:46px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.35rem;flex:none;box-shadow:0 6px 16px rgba(0,0,0,.3)}
+.tool-name{font-weight:900;font-size:.9rem}
+.tool-desc{color:var(--muted);font-size:.74rem;font-weight:700}
+.tool .own{margin-left:auto;flex:none}
+.own-badge{background:rgba(52,211,153,.15);border:1px solid var(--good);color:#a7f3d0;border-radius:999px;padding:6px 13px;font-size:.75rem;font-weight:900}
+
+/* ---------- Ranking ---------- */
+table{width:100%;border-collapse:collapse;font-size:.88rem}
+th{font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);text-align:left;padding:6px 8px;border-bottom:1px solid var(--line);font-weight:900}
+td{padding:9px 8px;border-bottom:1px solid rgba(255,255,255,.06);font-weight:700}
+tr.me td{background:rgba(34,211,238,.1);font-weight:900}
+td.num,th.num{text-align:right}
+.rank-medal{width:26px;display:inline-block}
 
 /* ---------- Log ---------- */
-.log{max-height:300px;overflow-y:auto;font-size:.83rem;display:flex;flex-direction:column;gap:6px}
-.log div{padding:6px 10px;background:var(--bg2);border-radius:6px;border-left:3px solid var(--line)}
-.log .lg-good{border-left-color:var(--good)} .log .lg-bad{border-left-color:var(--bad)} .log .lg-ev{border-left-color:var(--accent2)}
+.log{max-height:300px;overflow-y:auto;font-size:.82rem;display:flex;flex-direction:column;gap:7px;font-weight:700}
+.log div{padding:8px 12px;background:rgba(0,0,0,.24);border-radius:12px;border-left:3px solid var(--line)}
+.log .lg-good{border-left-color:var(--good)}.log .lg-bad{border-left-color:var(--bad)}.log .lg-ev{border-left-color:var(--vio)}
 
 /* ---------- Skilltree ---------- */
-.skill{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px dashed var(--line);gap:8px}
+.skill{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px dashed var(--line);gap:8px}
 .skill:last-child{border:none}
-.pips{display:flex;gap:4px}
-.pip{width:12px;height:12px;border-radius:50%;background:var(--bg2);border:1px solid var(--line)}
-.pip.on{background:var(--gold);border-color:var(--gold)}
+.pips{display:flex;gap:5px}
+.pip{width:13px;height:13px;border-radius:50%;background:rgba(0,0,0,.35);border:1px solid var(--line)}
+.pip.on{background:var(--gold);border-color:var(--gold);box-shadow:0 0 8px rgba(251,191,36,.6)}
 
 /* ---------- Modal ---------- */
-#modal-wrap{position:fixed;inset:0;background:rgba(4,7,18,.75);z-index:40;display:flex;align-items:center;justify-content:center;padding:16px}
-.modal{background:var(--panel);border:1px solid var(--line);border-radius:16px;max-width:640px;width:100%;max-height:86vh;overflow-y:auto;padding:26px 28px;box-shadow:0 24px 80px rgba(0,0,0,.6)}
-.modal h2{font-size:1.2rem;margin-bottom:14px}
-.modal h2.ev{color:var(--accent2)}
-.report-item{padding:9px 12px;border-radius:8px;background:var(--bg2);margin-bottom:8px;font-size:.9rem;border-left:3px solid var(--line)}
-.report-item.ok{border-left-color:var(--good)} .report-item.crit{border-left-color:var(--gold)}
-.report-item.fail{border-left-color:var(--warn)} .report-item.dis{border-left-color:var(--bad)}
-.fin-row{display:flex;justify-content:space-between;font-size:.88rem;padding:3px 0}
-.fin-row .num{font-family:var(--mono)}
+#modal-wrap{position:fixed;inset:0;background:rgba(5,4,20,.72);backdrop-filter:blur(6px);z-index:40;display:flex;align-items:center;justify-content:center;padding:16px}
+.modal{background:linear-gradient(170deg,rgba(46,38,96,.96),rgba(20,16,52,.97));border:1px solid var(--line);border-radius:26px;max-width:640px;width:100%;max-height:88vh;overflow-y:auto;padding:26px 26px;box-shadow:0 30px 90px rgba(0,0,0,.65);animation:popIn .35s ease}
+.modal h2{font-size:1.2rem;margin-bottom:14px;font-weight:900}
+.modal h2.ev{color:#ddd6fe}
+.report-item{padding:10px 14px;border-radius:14px;background:rgba(0,0,0,.24);margin-bottom:8px;font-size:.88rem;border-left:4px solid var(--line);font-weight:700}
+.report-item.ok{border-left-color:var(--good)}.report-item.crit{border-left-color:var(--gold);background:rgba(251,191,36,.08)}
+.report-item.fail{border-left-color:var(--warn)}.report-item.dis{border-left-color:var(--bad)}
+.fin-row{display:flex;justify-content:space-between;font-size:.88rem;padding:4px 0;font-weight:700}
 .modal-btns{display:flex;gap:10px;margin-top:20px;flex-wrap:wrap}
-.modal-btns button{flex:1;padding:11px 16px;font-size:.95rem}
-.mb-main{background:linear-gradient(135deg,var(--accent),#0ea5c9);color:#04222b;font-weight:700}
-.mb-alt{background:var(--panel2);border:1px solid var(--line);color:var(--text)}
+.modal-btns button{flex:1;padding:13px 16px;font-size:.95rem;border-radius:16px;min-width:150px}
+.mb-main{background:var(--grad-main);color:#fff;box-shadow:0 10px 24px rgba(139,92,246,.4)}
+.mb-alt{background:rgba(0,0,0,.28);border:1.5px solid var(--line);color:var(--text)}
 
-/* ---------- Game over ---------- */
-#gameover-screen{position:fixed;inset:0;z-index:60;display:none;align-items:center;justify-content:center;background:rgba(4,7,18,.92)}
+/* ---------- Confetti / GameOver ---------- */
+.confetti{position:fixed;inset:0;pointer-events:none;z-index:99;overflow:hidden}
+.confetti i{position:absolute;top:-16px;width:10px;height:15px;border-radius:3px;animation:confFall 2.4s ease-in forwards}
+#gameover-screen{position:fixed;inset:0;z-index:60;display:none;align-items:center;justify-content:center;background:rgba(5,4,20,.92);padding:16px}
 #gameover-screen.show{display:flex}
 
-@media(max-width:700px){
-  .res{gap:8px}.res-item{min-width:56px}
-  main{padding:14px 10px 60px}
+@media(max-width:640px){
+  .res{gap:8px}.res-item{min-width:52px}
+  main{padding:12px 10px 90px}
+  #btn-sim{padding:11px 16px;font-size:.9rem}
 }
 </style>
 </head>
@@ -163,13 +215,14 @@ td.num,th.num{text-align:right;font-family:var(--mono)}
 <!-- ======================= START ======================= -->
 <div id="start-screen">
   <div class="start-card">
-    <div class="logo"><span class="n1">NEURAL</span> <span class="n2">MANAGER</span></div>
-    <div class="tagline">Erlebe, wie eine KI-Agentur arbeitet: Gründe dein Team aus KI-Agenten<br>und mach in 12 Wochen aus kleinen Use Cases große Projekte.</div>
-    <label for="inp-company">Name deiner Agentur</label>
-    <input id="inp-company" maxlength="24" placeholder="z. B. NeuralNautic Labs">
-    <label for="inp-manager">Dein Name (Manager)</label>
+    <div class="logo-badge">🛠️</div>
+    <div class="logo">KI-<b>WERKSTATT</b></div>
+    <div class="tagline">Führe deine eigene KI-Beratung.<br>Hilf Bäckerei, Autohaus &amp; Maschinenbau, mit KI durchzustarten –<br>und erlebe, wie AI-Enabling im Mittelstand wirklich funktioniert.</div>
+    <label for="inp-company">Name deiner Beratung</label>
+    <input id="inp-company" maxlength="24" placeholder="z. B. NeuralNautic">
+    <label for="inp-manager">Dein Name</label>
     <input id="inp-manager" maxlength="20" placeholder="z. B. Frank">
-    <button class="btn-primary" id="btn-found" onclick="foundCompany()">🚀 Agentur gründen</button>
+    <button class="btn-primary" id="btn-found" onclick="foundCompany()">🚀 Beratung gründen</button>
     <button class="btn-ghost hidden" id="btn-continue" onclick="continueGame()">Gespeicherten Stand fortsetzen</button>
   </div>
 </div>
@@ -177,31 +230,32 @@ td.num,th.num{text-align:right;font-family:var(--mono)}
 <!-- ======================= GAME ======================= -->
 <div id="game" class="hidden">
 <header>
+  <div class="h-badge">🛠️</div>
   <div>
-    <div class="h-logo"><span class="acc">NEURAL</span> <span class="acc2">MANAGER</span></div>
-    <div class="h-company" id="h-company"></div>
+    <div class="h-name" id="h-company"></div>
+    <div class="h-sub" id="h-sub"></div>
   </div>
-  <span class="badge" id="h-league"></span>
-  <span class="badge" id="h-week"></span>
+  <span class="pill" id="h-league"></span>
+  <span class="pill" id="h-week"></span>
   <div class="res">
-    <div class="res-item"><span class="lbl">Credits</span><span class="val" id="h-credits"></span></div>
-    <div class="res-item"><span class="lbl">Reputation</span><span class="val" id="h-rep"></span></div>
-    <div class="res-item"><span class="lbl">Slots</span><span class="val" id="h-slots"></span></div>
+    <div class="res-item"><div class="lbl">Budget</div><div class="val num" id="h-credits"></div></div>
+    <div class="res-item"><div class="lbl">Ruf</div><div class="val num" id="h-rep"></div></div>
+    <div class="res-item"><div class="lbl">Team</div><div class="val num" id="h-slots"></div></div>
     <div class="res-item">
-      <span class="lbl">Manager <span id="h-mlvl"></span></span>
+      <div class="lbl">Manager <span id="h-mlvl"></span></div>
       <div class="mgr-bar"><div id="h-mxp" style="width:0%"></div></div>
     </div>
-    <button id="btn-sim" onclick="simulateWeek()">▶ Woche simulieren</button>
-    <button id="btn-reset" onclick="resetGame()" title="Spielstand löschen">↺ Reset</button>
+    <button id="btn-sim" onclick="simulateWeek()">▶ Woche starten</button>
+    <button id="btn-reset" onclick="resetGame()" title="Spielstand löschen">↺</button>
   </div>
 </header>
 
 <nav>
-  <button data-tab="zentrale" class="active" onclick="showTab('zentrale')">Zentrale</button>
-  <button data-tab="auftraege" onclick="showTab('auftraege')">Aufträge</button>
-  <button data-tab="team" onclick="showTab('team')">Team &amp; Training</button>
-  <button data-tab="markt" onclick="showTab('markt')">Recruiting</button>
-  <button data-tab="liga" onclick="showTab('liga')">Markt &amp; Ranking</button>
+  <button data-tab="zentrale" class="active" onclick="showTab('zentrale')">🏠 Zentrale</button>
+  <button data-tab="auftraege" onclick="showTab('auftraege')">📋 Projekte</button>
+  <button data-tab="team" onclick="showTab('team')">👥 Team</button>
+  <button data-tab="markt" onclick="showTab('markt')">🤝 Recruiting</button>
+  <button data-tab="liga" onclick="showTab('liga')">🏆 Markt</button>
 </nav>
 
 <main>
@@ -214,134 +268,150 @@ td.num,th.num{text-align:right;font-family:var(--mono)}
 </div>
 
 <div id="modal-wrap" class="hidden"><div class="modal" id="modal-content"></div></div>
-
 <div id="gameover-screen"><div class="start-card" id="gameover-card"></div></div>
 
 <script>
 'use strict';
 /* =====================================================================
-   NEURAL MANAGER – One-Shot-Prototyp (v0.1)
-   Ein KI-Agentur-Manager im Stil eines Fußballmanagers.
-   Alles in einer Datei: Zustand, Logik, UI. Save via localStorage.
+   KI-WERKSTATT v0.3 – AI-Enabling für KMUs als Manager-Spiel
+   Du führst eine KI-Beratung: Berater:innen + KI-Toolbox treffen auf
+   echte KMU-Use-Cases. Kernmechanik: Technik UND Akzeptanz müssen
+   stimmen – ohne Schulung scheitert auch perfekte Technik.
    ===================================================================== */
 
-/* ---------------- Konfiguration ---------------- */
-const SAVE_KEY = 'aimanager_save_v2';
-const DEMO_WEEKS = 12;   // geführte Partie bis zum Abschlussbericht (~10-15 Min)
-const QUARTER_LEN = 4;   // Wochen pro Quartal (Quartalsbericht + Segment-Check)
+const SAVE_KEY = 'aimanager_save_v3';
+const DEMO_WEEKS = 12;
+const QUARTER_LEN = 4;
 
-/* Branding/CTA – hier anpassen, wenn das Spiel auf der Agentur-Webseite läuft */
+/* Branding + Asset-Slots: hier später Logo/Bilder/CTA der Agentur eintragen */
 const BRAND = {
   agency: 'NeuralNautic',
   ctaText: 'Sprechen wir über Ihren Use Case',
   ctaUrl: 'https://neuralnautic.org',
+  logoEmoji: '🛠️',           // ASSET-Slot: später <img>-Logo
+  heroImage: null,            // ASSET-Slot: Start-Illustration (URL/Base64)
 };
 
-const STATS = { logic:'Logik', creativity:'Kreativität', code:'Code', knowledge:'Wissen', speed:'Tempo', stability:'Stabilität' };
+const SKILLS_C = { technik:'Technik', prozesse:'Prozesse', didaktik:'Didaktik', branche:'Branchenwissen', kommunikation:'Kommunikation', sorgfalt:'Sorgfalt' };
 
-/* Kundensegmente: Aufstieg über Reputations-Schwellen (repGate), kein Abstieg */
-const SEGMENTS = [
-  { name:'Lokale Kunden',        diff:32, reward:1.0, fixcost:120,  power:[18,42], repGate:0 },
-  { name:'Startups',             diff:46, reward:1.8, fixcost:320,  power:[34,58], repGate:32 },
-  { name:'Mittelstand',          diff:60, reward:3.2, fixcost:750,  power:[48,72], repGate:50 },
-  { name:'Enterprise',           diff:74, reward:5.5, fixcost:1600, power:[62,86], repGate:68 },
-  { name:'Forschung & Frontier', diff:88, reward:9.0, fixcost:3200, power:[78,99], repGate:85 },
-];
-
-/* Didaktik: Jede Mechanik erklärt einmalig, was sie in der echten Agentur-Arbeit bedeutet */
-const INSIGHTS = {
-  sim:      'Du hast Agenten nach ihrem Stärkenprofil auf Aufgaben verteilt – in echt heißt das: Für jeden Use Case wählen wir das passende Modell bzw. den passenden Agenten.',
-  training: 'Training kostet erst Geld und Zeit – und liefert dann Qualität. In echt: Fine-Tuning, Prompt-Engineering und saubere Evaluation.',
-  disaster: 'Ein Projekt ist gekippt. Genau darum bauen wir Qualitätssicherung, Tests und menschliche Freigaben (Human-in-the-Loop) ein.',
-  upgrade:  'Mehr Rechenleistung erlaubt mehr parallele Projekte, kostet aber laufend. Infrastruktur wird deshalb genau auf den Bedarf dimensioniert.',
-};
-
-const CATS = {
-  code:      { label:'Entwicklung', primary:'code',      secondary:'logic' },
-  logic:     { label:'Analyse',     primary:'logic',     secondary:'knowledge' },
-  creativity:{ label:'Kreativ',     primary:'creativity',secondary:'speed' },
-  knowledge: { label:'Recherche',   primary:'knowledge', secondary:'stability' },
-};
-
-const ARCHETYPES = [
-  { id:'gen',  name:'Generalist',      cat:null,        focus:['logic','code'] },
-  { id:'code', name:'Code-Spezialist', cat:'code',      focus:['code','logic'] },
-  { id:'krea', name:'Kreativ-Modell',  cat:'creativity',focus:['creativity','speed'] },
-  { id:'data', name:'Daten-Analyst',   cat:'logic',     focus:['logic','knowledge'] },
-  { id:'rech', name:'Rechercheur',     cat:'knowledge', focus:['knowledge','stability'] },
+const ROLES = [
+  { id:'dev',    name:'KI-Entwickler:in',   focus:['technik','sorgfalt'] },
+  { id:'proz',   name:'Prozess-Analyst:in', focus:['prozesse','branche'] },
+  { id:'coach',  name:'KI-Coach',           focus:['didaktik','kommunikation'] },
+  { id:'allr',   name:'Allrounder:in',      focus:['technik','prozesse'] },
+  { id:'sales',  name:'Kundenversteher:in', focus:['kommunikation','branche'] },
 ];
 
 const TRAITS = [
-  { id:'workaholic', name:'Workaholic',  desc:'Zustand sinkt langsamer',            condMult:.6 },
-  { id:'diva',       name:'Diva',        desc:'Moral schwankt stark',               moraleMult:1.6 },
-  { id:'halluzi',    name:'Halluzinator',desc:'Desaster-Risiko +, dafür günstig',   disaster:8, salaryMult:.7 },
-  { id:'praezise',   name:'Präzise',     desc:'Desaster-Risiko deutlich gesenkt',   disaster:-6 },
-  { id:'wunder',     name:'Wunderkind',  desc:'Sammelt XP 35 % schneller',          xpMult:1.35 },
-  { id:'effizient',  name:'Effizient',   desc:'15 % günstigeres Gehalt',            salaryMult:.85 },
+  { id:'marathon', name:'Marathon-Typ',   desc:'Energie sinkt langsamer',            condMult:.6 },
+  { id:'prima',    name:'Primadonna',     desc:'Stimmung schwankt stark',            moraleMult:1.6 },
+  { id:'chaot',    name:'Kreativ-Chaot',  desc:'Pannen-Risiko +, dafür günstig',     disaster:8, salaryMult:.7 },
+  { id:'pedant',   name:'Pedantisch',     desc:'Deutlich weniger Pannen',            disaster:-6 },
+  { id:'lerner',   name:'Schnelllerner',  desc:'Sammelt Erfahrung 35 % schneller',   xpMult:1.35 },
+  { id:'beschei',  name:'Bescheiden',     desc:'15 % günstigeres Gehalt',            salaryMult:.85 },
 ];
 
-const AGENT_NAMES = ['NOVA','ATLAS','ORION','LUMEN','VEGA','QUANT','ECHO','CIPHER','NEXUS','AURORA','ZEPHYR','MIRA','SOL','KRONOS','IRIS','PULSE','DELTA','HELIX','ONYX','LYRA','FLUX','RAVEN','TESSA','GLIMMER','JUNO','KANT','BOREAS','SIRIUS'];
+const FIRST=['Mara','Jonas','Leila','Ben','Sofia','Emre','Hanna','Paul','Aylin','Tom','Greta','Nico','Zoe','Milan','Ida','Ravi','Lea','Finn','Nora','Samir'];
+const LAST=['Berg','Weber','Kaya','Roth','Lindt','Vogel','Stein','Brandt','Krüger','Sommer','Winter','Falk','Neumann','Otto','Wolf','Haas'];
 
-const RIVAL_NAMES = ['Kellerkind KI','ByteSchmiede','GarageMind','Neuronale Nachbarn','Prompt & Söhne','Datenkeller GmbH','TensorTaxi','SynapsenWerk','DeepDenker','CloudKobold','LogikLabor','BitBrauerei','AlgoAtelier','MindMacher','VektorVilla','SchlauSchmiede','KI-Kiosk','NeuroNest','QuantenQuark','InferenzInstitut','GradientGarten','TokenTruppe','ModellManufaktur','LatentLounge','EpochenEcke','ParameterPark','Skalierbar & Co','RoboRüben'];
+/* KI-Toolbox: Lösungsbausteine, die Projekte freischalten */
+const TOOLS = {
+  chatbot:   { name:'Chatbot-Baukasten',     icon:'💬', grad:['#22d3ee','#3b82f6'], cost:0,    desc:'Kundenanfragen & Termine automatisch beantworten' },
+  automation:{ name:'Automatisierungs-Suite',icon:'⚙️', grad:['#8b5cf6','#6366f1'], cost:1500, desc:'Rechnungen, Angebote & Büro-Abläufe automatisieren' },
+  rag:       { name:'Wissens-KI',            icon:'📚', grad:['#f59e0b','#ef4444'], cost:2400, desc:'Firmenwissen durchsuchbar machen (RAG)' },
+  forecast:  { name:'Prognose-Modul',        icon:'📈', grad:['#34d399','#10b981'], cost:3200, desc:'Absatz, Lager & Personal vorausplanen' },
+  academy:   { name:'KI-Academy',            icon:'🎓', grad:['#ec4899','#f43f5e'], cost:1800, desc:'Schulungsprogramm: Akzeptanz-Bonus in allen Projekten' },
+};
 
-const CLIENTS = [
-  ['Pizzeria Bellissima','Fahrschule Blitz','Blumen Krause','Kiosk 24/7','Friseur Löwenmähne','Tischlerei Span','Café Muckefuck','Reisebüro Fernweh'],
-  ['FinTech PayPirat','Food-App Mampf','HR-Startup JobJet','PropTech Wohnwut','EdTech LernLux','GreenTech Solaris','MedTech Pulsar'],
-  ['Maschinenbau MSK','Logistik LKW-Werk','Versicherung ProSecura','Handelskette KaufKlar','Klinikverbund Vital','Möbelwerke Nordholz'],
-  ['Automotive-Konzern AXV','Bundesbehörde für Digitales','Energieriese VoltAG','Großbank Metropol','TelekomTitan','Luftfahrt Aerix'],
-  ['Frontier Lab Helios','Raumfahrtagentur ESRA','Weltkonzern OmniCorp','Forschungscluster Gaia','MegaLab Prometheus','Quantum Dynamics'],
-];
+/* Use-Cases (Projekttypen) */
+const USECASES = {
+  chatbot: { label:'Kunden-Chatbot',       icon:'💬', grad:['#22d3ee','#3b82f6'], tool:'chatbot',   skills:['technik','kommunikation'] },
+  autom:   { label:'Büro-Automatisierung', icon:'⚙️', grad:['#8b5cf6','#6366f1'], tool:'automation',skills:['technik','prozesse'] },
+  wissen:  { label:'Wissensdatenbank',     icon:'📚', grad:['#f59e0b','#ef4444'], tool:'rag',       skills:['branche','technik'] },
+  prognose:{ label:'Planung & Prognose',   icon:'📈', grad:['#34d399','#10b981'], tool:'forecast',  skills:['prozesse','technik'] },
+  workshop:{ label:'Use-Case-Workshop',    icon:'🧭', grad:['#a78bfa','#ec4899'], tool:null,        skills:['prozesse','branche'] },
+  schulung:{ label:'Team-Schulung',        icon:'🎓', grad:['#ec4899','#f43f5e'], tool:null,        skills:['didaktik','kommunikation'] },
+};
 
 const JOB_TITLES = {
-  code:      ['Website-Relaunch','Buchungssystem','Automatisierungs-Skript','App-Prototyp','API-Integration','Shop-Migration','Chatbot-Deployment'],
-  logic:     ['Umsatz-Analyse','Preisoptimierung','Betrugs-Erkennung','Forecast-Modell','Lager-Optimierung','Kunden-Segmentierung'],
-  creativity:['Werbekampagne','Social-Media-Content','Markenauftritt','Produktvideo-Konzept','Namensfindung','Pitch-Deck-Design'],
-  knowledge: ['Marktrecherche','Wettbewerbsanalyse','Trendreport','Due-Diligence-Zuarbeit','Wissensdatenbank','Studien-Auswertung'],
+  chatbot: ['Chatbot für Terminanfragen','WhatsApp-Assistent','FAQ-Bot für die Webseite','Bestell-Assistent'],
+  autom:   ['Rechnungen automatisch erfassen','Angebote per KI erstellen','E-Mail-Postfach sortieren','Dienstplan-Automatik'],
+  wissen:  ['Firmenwissen durchsuchbar machen','Onboarding-Wissensbasis','Produktkatalog-KI','Vorschriften-Assistent'],
+  prognose:['Absatzprognose einführen','Lagerbestand optimieren','Personalbedarf planen','Wartung vorhersagen'],
+  workshop:['KI-Potenzialanalyse','Use-Case-Workshop','Digitalisierungs-Fahrplan','Prozess-Check'],
+  schulung:['KI-Grundlagen fürs Team','Prompt-Training','KI-Führerschein','Azubi-KI-Tag'],
 };
 
-const SKILLS = {
-  scouting:    { name:'Scouting',       desc:'Bessere & mehr Agenten im Markt' },
-  training:    { name:'Trainingslehre', desc:'+Trainingseffekt · Stufe 3: 2. Slot' },
-  verhandlung: { name:'Verhandlung',    desc:'+4 %/Stufe Vergütung, −4 % Kaufpreise' },
-  finanzen:    { name:'Finanzen',       desc:'−6 %/Stufe Fixkosten' },
+/* Kundensegmente (Firmengröße) – Aufstieg über Reputation */
+const SEGMENTS = [
+  { name:'Kleinstbetriebe',   diff:30, reward:1.0, fixcost:150,  power:[18,40], repGate:0 },
+  { name:'Handwerk & Handel', diff:44, reward:1.7, fixcost:350,  power:[32,56], repGate:32 },
+  { name:'Wachsende KMU',     diff:58, reward:3.0, fixcost:800,  power:[46,70], repGate:50 },
+  { name:'Mittelstand',       diff:72, reward:5.2, fixcost:1700, power:[60,84], repGate:68 },
+  { name:'Hidden Champions',  diff:86, reward:8.5, fixcost:3300, power:[76,98], repGate:85 },
+];
+
+const CLIENTS = [
+  [['Bäckerei Krümel','Handwerk'],['Friseursalon Locke','Dienstleistung'],['Zahnarztpraxis Dr. Weiß','Gesundheit'],['Blumenladen Flora','Einzelhandel'],['Café Bohne','Gastronomie'],['Fahrschule Blitz','Dienstleistung']],
+  [['Autohaus Weber','Handel'],['Elektro Schmidt','Handwerk'],['Steuerkanzlei Roth','Beratung'],['Hotel Seeblick','Tourismus'],['Tischlerei Eiche','Handwerk'],['Pflegedienst Sonnenschein','Gesundheit']],
+  [['Spedition Falke','Logistik'],['Weingut Sonnenhang','Lebensmittel'],['Druckerei Farbwerk','Produktion'],['Immobilien Nordlicht','Immobilien'],['Bio-Großhandel Grünkorn','Handel']],
+  [['Maschinenbau MSK','Industrie'],['Klinikverbund Vital','Gesundheit'],['Verpackungswerke Rhein','Industrie'],['Stadtwerke Volta','Energie'],['Modehaus Kettenherz','Handel']],
+  [['Sensorik AG','Industrie'],['Pharma-Zulieferer Helix','Pharma'],['Robotik Weltmarktführer RoWe','Industrie'],['Spezialchemie Rheinland','Chemie']],
+];
+
+const RIVAL_NAMES = ['Digital-Doktor','KMU-Boost Consulting','Mittelstand.AI','ByteBerater','Zukunftswerkstatt Nord','SmartHandwerk','DigiLotsen','KI-Kontor','ProzessPiloten','Innovationsschmiede','CleverConsult','DatenFüchse','NextLevel Beratung','KI-Karawane','Digitalgefährten'];
+
+const MSKILLS = {
+  vertrieb:  { name:'Vertrieb',   desc:'+4 %/Stufe Honorare, bessere Anfragen' },
+  didaktik:  { name:'Didaktik',   desc:'+5/Stufe Akzeptanz in allen Projekten' },
+  recruiting:{ name:'Recruiting', desc:'Bessere Bewerbungen, mehr Auswahl' },
+  methodik:  { name:'Methodik',   desc:'+2 %/Stufe Erfolgschance, weniger Pannen' },
 };
 
-/* Events: effect() wird sofort ausgeführt; choices[] erzeugt Entscheidungs-Modal */
+const INSIGHTS = {
+  sim:      'Du hast zum Use Case die passenden Leute gewählt – genau das ist AI-Enabling: Erst das Problem verstehen, dann das Werkzeug wählen. Nie umgekehrt.',
+  adoption: 'Die Technik lief – aber das Team hat sie nicht angenommen. Darum gehört bei uns Schulung & Change-Begleitung in jedes Projekt. KI scheitert selten an der Technik.',
+  training: 'Weiterbildung kostet erst und zahlt sich dann aus – bei Beratern wie bei euren Mitarbeitern. Genau dafür gibt es unsere Schulungsformate.',
+  disaster: 'Eine Panne beim Kunden – das passiert, wenn Sorgfalt, Tests und Datenschutz zu kurz kommen. Wir arbeiten mit Checklisten, Testläufen und DSGVO-Blick.',
+  tool:     'Ein neues Werkzeug allein ist noch keine Lösung. Erst Prozessverständnis + passendes Tool + geschulte Menschen bringen echten Nutzen.',
+};
+
 const EVENTS = [
-  { id:'gpu', title:'GPU-Ausfall im Cluster', text:'Ein Kühlungsdefekt legt den Cluster für Stunden lahm. Alle Agenten verlieren 15 Zustand.',
-    effect:s=>{ s.agents.forEach(a=>a.cond=clamp(a.cond-15,0,100)); } },
-  { id:'hype', title:'Hype-Welle', text:'Ein Tech-Blog feiert eure Arbeit – die Reputation steigt um 6.',
+  { id:'foerder', title:'Förderprogramm entdeckt', text:'„Digital Jetzt“ zahlt Zuschüsse für KI-Projekte im Mittelstand.',
+    choices:[
+      { label:'Antrag stellen (−300 €, 70 % Chance auf +2.000 €)', run:s=>{ if(s.credits<300) return 'Kein Budget für den Antrag.'; s.credits-=300; if(Math.random()<0.7){ s.credits+=2000; return '✅ Bewilligt! +2.000 € Fördergeld.'; } return 'Abgelehnt – die Antragsgebühr ist futsch.'; } },
+      { label:'Zu viel Papierkram', run:s=>'Ihr lasst die Förderung liegen.' },
+    ] },
+  { id:'presse', title:'Lokalzeitung berichtet', text:'„KI hilft dem Handwerk“ – euer Projekt schafft es in die Zeitung. +6 Ruf.',
     effect:s=>{ s.rep=clamp(s.rep+6,0,100); } },
-  { id:'strom', title:'Strompreis-Spitze', text:'Die Energiekosten explodieren diese Woche.',
-    effect:s=>{ const c=150*s.compute; s.credits-=c; s.week_extra_cost=(s.week_extra_cost||0)+c; } },
-  { id:'oss', title:'Open-Source-Durchbruch', text:'Ein neues Framework hebt einen eurer Agenten spürbar an (+4 auf ein Attribut).',
-    effect:s=>{ const a=pick(s.agents); if(a){ const k=pick(Object.keys(STATS)); a.stats[k]=clamp(a.stats[k]+4,1,100); s.lastEventNote=a.name+': +4 '+STATS[k]; } } },
-  { id:'bug', title:'Bug im Live-Deployment', text:'Ein peinlicher Fehler beim Kunden kostet 4 Reputation.',
-    effect:s=>{ s.rep=clamp(s.rep-4,0,100); } },
-  { id:'prakti', title:'Praktikant optimiert Pipeline', text:'Eine kleine Optimierung spart sofort 300 Credits.',
-    effect:s=>{ s.credits+=300; } },
-  { id:'viral', title:'Viral gegangen!', text:'Ein Demo-Video eurer Agenten geht viral. Nächste Woche: +20 % auf alle Vergütungen.',
+  { id:'skeptiker', title:'Chef-Skeptiker', text:'Ein Geschäftsführer wettert am Stammtisch gegen KI. Die Stimmung in der Region kippt leicht (−3 Ruf).',
+    effect:s=>{ s.rep=clamp(s.rep-3,0,100); } },
+  { id:'dsgvo', title:'Datenschutz-Anfrage', text:'Ein Kunde fragt kritisch nach: Wo landen eigentlich unsere Daten?',
+    choices:[
+      { label:'Anwältin prüfen lassen (−400 €, +4 Ruf)', run:s=>{ if(s.credits<400) return 'Kein Budget – ihr vertröstet den Kunden.'; s.credits-=400; s.rep=clamp(s.rep+4,0,100); return 'Sauber aufgearbeitet – der Kunde ist beeindruckt (+4 Ruf).'; } },
+      { label:'Selbst beantworten (Risiko)', run:s=>{ if(Math.random()<0.5){ s.rep=clamp(s.rep+1,0,100); return 'Eure Antwort überzeugt (+1 Ruf).'; } s.rep=clamp(s.rep-5,0,100); return 'Halbwissen fällt auf – der Kunde ist verunsichert (−5 Ruf).'; } },
+    ] },
+  { id:'abwerbe', title:'Abwerbeversuch!', text:'Ein Konzern umgarnt euer bestes Teammitglied mit einem dicken Gehalt.',
+    choices:[
+      { label:'Gehalt um 30 % erhöhen', run:s=>{ const a=bestConsultant(s); if(a){ a.salary=Math.round(a.salary*1.3); a.morale=clamp(a.morale+10,0,100); return a.name+' bleibt – Gehalt jetzt '+fmt(a.salary)+' €/Woche.'; } return 'Niemand betroffen.'; } },
+      { label:'Ablehnen und riskieren', run:s=>{ const a=bestConsultant(s); if(a&&s.team.length>2&&Math.random()<0.35){ removeConsultant(s,a.id); return '😱 '+a.name+' hat unterschrieben und ist weg!'; } if(a){ a.morale=clamp(a.morale-12,0,100); return a.name+' bleibt, ist aber angefressen (−12 Stimmung).'; } return 'Niemand betroffen.'; } },
+    ] },
+  { id:'empfehlung', title:'Weiterempfehlung!', text:'Ein begeisterter Kunde empfiehlt euch weiter – nächste Woche +20 % auf alle Honorare.',
     effect:s=>{ s.buffReward=1.2; } },
-  { id:'abwerbe', title:'Abwerbeversuch!', text:'Ein Konkurrent umgarnt euren besten Agenten.',
+  { id:'krank', title:'Grippewelle', text:'Das halbe Büro schnieft. Alle verlieren 15 Energie.',
+    effect:s=>{ s.team.forEach(a=>a.cond=clamp(a.cond-15,0,100)); } },
+  { id:'meetup', title:'KI-Meetup in der Region', text:'Ihr könnt einen Vortrag halten. Standkosten: 250 €.',
     choices:[
-      { label:'Gehalt um 30 % erhöhen (bleibt sicher)', run:s=>{ const a=bestAgent(s); if(a){ a.salary=Math.round(a.salary*1.3); a.morale=clamp(a.morale+10,0,100); return a.name+' bleibt – Gehalt jetzt '+a.salary+' ¢/Woche.'; } return 'Kein Agent betroffen.'; } },
-      { label:'Ablehnen und riskieren', run:s=>{ const a=bestAgent(s); if(a && s.agents.length>2 && Math.random()<0.35){ removeAgent(s,a.id); return '😱 '+a.name+' hat unterschrieben – der Agent ist weg!'; } if(a){ a.morale=clamp(a.morale-12,0,100); return a.name+' bleibt, ist aber angefressen (−12 Moral).'; } return 'Kein Agent betroffen.'; } },
+      { label:'Auftreten (−250 €, +7 Ruf, +50 Mgr-XP)', run:s=>{ if(s.credits<250) return 'Kein Budget.'; s.credits-=250; s.rep=clamp(s.rep+7,0,100); addMgrXp(s,50); return 'Voller Saal, starke Fragen! +7 Ruf.'; } },
+      { label:'Keine Zeit', run:s=>'Ihr bleibt im Projektgeschäft.' },
     ] },
-  { id:'investor', title:'Investor klopft an', text:'Ein Angel-Investor bietet 2000 Credits – verlangt aber einen Exklusivdeal, der eure Unabhängigkeit ankratzt.',
+  { id:'teamevent', title:'Team-Ausflug?', text:'Das Team wünscht sich einen Escape-Room-Abend (200 €).',
     choices:[
-      { label:'Annehmen (+2000 ¢, −8 Rep)', run:s=>{ s.credits+=2000; s.rep=clamp(s.rep-8,0,100); return 'Deal! +2000 Credits, aber die Szene tuschelt (−8 Reputation).'; } },
-      { label:'Ablehnen (+2 Rep)', run:s=>{ s.rep=clamp(s.rep+2,0,100); return 'Ihr bleibt unabhängig – das kommt gut an (+2 Reputation).'; } },
+      { label:'Feiern (−200 €, +10 Stimmung für alle)', run:s=>{ if(s.credits<200) return 'Kein Budget – die Stimmung sinkt leicht.'; s.credits-=200; s.team.forEach(a=>a.morale=clamp(a.morale+10,0,100)); return 'Bester Abend seit langem! +10 Stimmung.'; } },
+      { label:'Kein Budget', run:s=>{ s.team.forEach(a=>a.morale=clamp(a.morale-4,0,100)); return 'Das Team murrt leise (−4 Stimmung).'; } },
     ] },
-  { id:'konferenz', title:'Konferenz-Einladung', text:'Ihr könnt auf der NeuralConf ausstellen. Standkosten: 400 Credits.',
-    choices:[
-      { label:'Hinfahren (−400 ¢, +8 Rep, +50 Mgr-XP)', run:s=>{ if(s.credits<400) return 'Zu teuer – ihr bleibt zuhause.'; s.credits-=400; s.rep=clamp(s.rep+8,0,100); addMgrXp(s,50); return 'Starker Auftritt! +8 Reputation, +50 Manager-XP.'; } },
-      { label:'Absagen', run:s=>'Ihr spart euch den Trubel.' },
-    ] },
-  { id:'teamevent', title:'Team-Event?', text:'Die Agenten wünschen sich ein LAN-Grillfest (200 Credits).',
-    choices:[
-      { label:'Feiern (−200 ¢, +10 Moral für alle)', run:s=>{ if(s.credits<200) return 'Kein Budget – die Stimmung sinkt leicht.'; s.credits-=200; s.agents.forEach(a=>a.morale=clamp(a.morale+10,0,100)); return 'Beste Stimmung im Cluster! +10 Moral für alle.'; } },
-      { label:'Kein Budget', run:s=>{ s.agents.forEach(a=>a.morale=clamp(a.morale-4,0,100)); return 'Die Agenten murren leise (−4 Moral).'; } },
-    ] },
+  { id:'cloud', title:'Cloud-Preiserhöhung', text:'Euer KI-Anbieter dreht an der Preisschraube – diese Woche wird es einmalig teurer.',
+    effect:s=>{ const c=120+40*Object.values(s.tools).filter(Boolean).length; s.credits-=c; s.week_extra_cost=(s.week_extra_cost||0)+c; } },
 ];
 
 /* ---------------- Helpers ---------------- */
@@ -355,64 +425,124 @@ const esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',
 let state=null;
 let uid=1;
 
-/* ---------------- Generatoren ---------------- */
-function makeAgent(tier, qualityBonus=0){
-  const arch=pick(ARCHETYPES);
-  const trait=pick(TRAITS);
+/* ---------------- Avatare (generierte SVG-Porträts) ---------------- */
+function mulberry(seed){ let t=seed>>>0; return function(){ t+=0x6D2B79F5; let r=Math.imul(t^t>>>15,1|t); r^=r+Math.imul(r^r>>>7,61|r); return ((r^r>>>14)>>>0)/4294967296; }; }
+function avatarSVG(seed,size){
+  const R=mulberry(seed);
+  const bgs=[['#8b5cf6','#22d3ee'],['#f43f5e','#f59e0b'],['#06b6d4','#34d399'],['#f59e0b','#ef4444'],['#a78bfa','#ec4899'],['#22c55e','#84cc16'],['#3b82f6','#8b5cf6']];
+  const skins=['#f6d0b1','#eab890','#d29b6e','#a9714b','#8a5a3b'];
+  const hairs=['#2f2438','#4a2f1d','#7a4a21','#b8860b','#606770','#12100e','#8b1e3f'];
+  const bg=bgs[Math.floor(R()*bgs.length)], skin=skins[Math.floor(R()*skins.length)], hair=hairs[Math.floor(R()*hairs.length)];
+  const style=Math.floor(R()*4), glasses=R()<0.3, gid='g'+(seed>>>0);
+  let hairEl='';
+  if(style===0) hairEl='<path d="M14 26 Q32 6 50 26 L50 22 Q32 2 14 22 Z" fill="'+hair+'"/><path d="M14 26 Q32 8 50 26 Q50 16 32 12 Q14 16 14 26" fill="'+hair+'"/>';
+  else if(style===1) hairEl='<path d="M12 30 Q12 8 32 8 Q52 8 52 30 L48 30 Q48 14 32 14 Q16 14 16 30 Z" fill="'+hair+'"/>';
+  else if(style===2) hairEl='<path d="M12 34 Q10 8 32 8 Q54 8 52 34 Q52 18 32 14 Q12 18 12 34" fill="'+hair+'"/><rect x="10" y="30" width="8" height="14" rx="4" fill="'+hair+'"/><rect x="46" y="30" width="8" height="14" rx="4" fill="'+hair+'"/>';
+  else hairEl='<circle cx="32" cy="16" r="12" fill="'+hair+'"/><path d="M16 26 Q32 10 48 26 Z" fill="'+hair+'"/>';
+  const gl=glasses?'<circle cx="25" cy="30" r="5.5" fill="none" stroke="#1f2430" stroke-width="2"/><circle cx="39" cy="30" r="5.5" fill="none" stroke="#1f2430" stroke-width="2"/><line x1="30.5" y1="30" x2="33.5" y2="30" stroke="#1f2430" stroke-width="2"/>':'';
+  return '<svg width="'+size+'" height="'+size+'" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">'+
+    '<defs><linearGradient id="'+gid+'" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="'+bg[0]+'"/><stop offset="1" stop-color="'+bg[1]+'"/></linearGradient></defs>'+
+    '<rect width="64" height="64" fill="url(#'+gid+')"/>'+
+    '<path d="M12 64 Q12 46 32 46 Q52 46 52 64 Z" fill="#ffffff" opacity="0.92"/>'+
+    '<circle cx="32" cy="30" r="15" fill="'+skin+'"/>'+ hairEl +
+    '<circle cx="25" cy="30" r="2" fill="#1f2430"/><circle cx="39" cy="30" r="2" fill="#1f2430"/>'+ gl +
+    '<path d="M27 37 Q32 41 37 37" stroke="#1f2430" stroke-width="2" fill="none" stroke-linecap="round"/>'+
+    '</svg>';
+}
+function badge(icon,grad,size){
+  return '<div style="width:'+size+'px;height:'+size+'px;border-radius:'+Math.round(size*0.3)+'px;display:flex;align-items:center;justify-content:center;font-size:'+Math.round(size*0.55)+'px;background:linear-gradient(135deg,'+grad[0]+','+grad[1]+');box-shadow:0 6px 16px rgba(0,0,0,.3)">'+icon+'</div>';
+}
+function clientLogo(name){
+  const grads=[['#8b5cf6','#6366f1'],['#f43f5e','#fb923c'],['#06b6d4','#3b82f6'],['#10b981','#84cc16'],['#f59e0b','#f43f5e'],['#ec4899','#8b5cf6']];
+  let h=0; for(const ch of name) h=(h*31+ch.charCodeAt(0))>>>0;
+  const g=grads[h%grads.length];
+  const initials=name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+  return '<div class="client-logo" style="background:linear-gradient(135deg,'+g[0]+','+g[1]+')">'+esc(initials)+'</div>';
+}
+function confetti(){
+  const colors=['#8b5cf6','#22d3ee','#ec4899','#fbbf24','#34d399','#f87171'];
+  const w=document.createElement('div'); w.className='confetti';
+  for(let i=0;i<30;i++){
+    const p=document.createElement('i');
+    p.style.left=(Math.random()*100)+'%';
+    p.style.background=pick(colors);
+    p.style.animationDelay=(Math.random()*0.5)+'s';
+    p.style.transform='rotate('+rnd(0,360)+'deg)';
+    w.appendChild(p);
+  }
+  document.body.appendChild(w);
+  setTimeout(()=>w.remove(),3200);
+}
+
+/* ---------------- Team-Generierung ---------------- */
+function makeConsultant(tier,qualityBonus=0){
+  const role=pick(ROLES), trait=pick(TRAITS);
   const L=SEGMENTS[tier];
   const base=Math.round((L.power[0]+L.power[1])/2)-8+qualityBonus;
   const stats={};
-  for(const k of Object.keys(STATS)){
+  for(const k of Object.keys(SKILLS_C)){
     let v=base+rnd(-9,9);
-    if(arch.focus.includes(k)) v+=rnd(6,14);
+    if(role.focus.includes(k)) v+=rnd(6,14);
     stats[k]=clamp(v,5,99);
   }
   const avg=Object.values(stats).reduce((a,b)=>a+b,0)/6;
   const level=1+Math.max(0,Math.round((avg-25)/8));
-  let salary=Math.round((35+level*12+avg*1.8)*(trait.salaryMult||1));
   return {
-    id:uid++, name:pick(AGENT_NAMES)+'-'+rnd(1,9), arch:arch.id, trait:trait.id,
-    level, xp:0, stats, cond:100, morale:70, salary,
+    id:uid++, seed:rnd(1,999999999),
+    name:pick(FIRST)+' '+pick(LAST), role:role.id, trait:trait.id,
+    level, xp:0, stats, cond:100, morale:70,
+    salary:Math.round((60+level*14+avg*1.9)*(trait.salaryMult||1)),
     value:Math.round(avg*30+level*120), out:0,
   };
 }
-function agentArch(a){ return ARCHETYPES.find(x=>x.id===a.arch); }
-function agentTrait(a){ return TRAITS.find(x=>x.id===a.trait); }
-function bestAgent(s){ return [...s.agents].sort((a,b)=>agentPowerAvg(b)-agentPowerAvg(a))[0]; }
-function agentPowerAvg(a){ return Object.values(a.stats).reduce((x,y)=>x+y,0)/6; }
-function removeAgent(s,id){
-  s.agents=s.agents.filter(a=>a.id!==id);
+function roleOf(a){ return ROLES.find(x=>x.id===a.role); }
+function traitOf(a){ return TRAITS.find(x=>x.id===a.trait); }
+function powerAvg(a){ return Object.values(a.stats).reduce((x,y)=>x+y,0)/6; }
+function bestConsultant(s){ return [...s.team].sort((a,b)=>powerAvg(b)-powerAvg(a))[0]; }
+function removeConsultant(s,id){
+  s.team=s.team.filter(a=>a.id!==id);
   s.contracts.forEach(c=>c.assigned=c.assigned.filter(x=>x!==id));
-  if(s.training && s.training.agentId===id) s.training=null;
+  if(s.training&&s.training.agentId===id) s.training=null;
 }
 
+/* ---------------- Projekte ---------------- */
 function makeContract(s){
   const tier=s.tier, L=SEGMENTS[tier];
-  const catKey=pick(Object.keys(CATS));
-  const cat=CATS[catKey];
+  const ucKey=pick(Object.keys(USECASES));
   const kind=Math.random();
   let diff,repGain,label;
   if(kind<0.4){ diff=L.diff+rnd(-12,-4); repGain=1; label='Leicht'; }
   else if(kind<0.75){ diff=L.diff+rnd(-3,5); repGain=2; label='Mittel'; }
   else if(kind<0.93){ diff=L.diff+rnd(6,14); repGain=3; label='Schwer'; }
-  else { diff=L.diff+rnd(15,24); repGain=4; label='Elite'; }
-  const negoBonus=1+0.04*(s.skills.verhandlung||0);
-  const reward=Math.round(diff*17*L.reward*(0.9+Math.random()*0.3)*negoBonus);
+  else { diff=L.diff+rnd(15,24); repGain=4; label='Prestige'; }
+  const nego=1+0.04*(s.skills.vertrieb||0);
+  const client=pick(CLIENTS[tier]);
   return {
-    id:uid++, title:pick(JOB_TITLES[catKey]), client:pick(CLIENTS[tier]),
-    cat:catKey, diff, label, reward, rep:repGain, assigned:[],
+    id:uid++, title:pick(JOB_TITLES[ucKey]), client:client[0], branche:client[1],
+    uc:ucKey, diff, label, reward:Math.round(diff*17*L.reward*(0.9+Math.random()*0.3)*nego),
+    rep:repGain, assigned:[], schulung:false,
   };
 }
 function refreshContracts(s){
   const n=4+(s.rep>=60?1:0)+(s.rep>=85?1:0);
-  s.contracts=[]; for(let i=0;i<n;i++) s.contracts.push(makeContract(s));
+  s.contracts=[];
+  for(let i=0;i<n;i++){
+    let c=makeContract(s), tries=0;
+    while(tries++<6&&s.contracts.some(x=>x.client===c.client)) c=makeContract(s);
+    s.contracts.push(c);
+  }
+  /* Mindestens 2 sofort spielbare Projekte garantieren */
+  let guard=0;
+  while(s.contracts.filter(c=>hasTool(s,c)).length<2&&guard++<30){
+    s.contracts[rnd(0,n-1)]=makeContract(s);
+  }
 }
 function refreshMarket(s){
-  const n=3+Math.ceil((s.skills.scouting||0)/2);
-  const q=(s.skills.scouting||0)*4;
+  const n=3+Math.ceil((s.skills.recruiting||0)/2);
+  const q=(s.skills.recruiting||0)*4;
   s.market=[]; for(let i=0;i<n;i++){
-    const a=makeAgent(s.tier,q+rnd(-3,6));
-    a.price=Math.round(a.value*(1.4-0.04*(s.skills.verhandlung||0)));
+    const a=makeConsultant(s.tier,q+rnd(-3,6));
+    a.price=Math.round(a.value*1.2);
     s.market.push(a);
   }
 }
@@ -426,76 +556,86 @@ function makeRivals(tier){
 function newState(company,manager){
   const s={
     company, manager, week:1, tier:0,
-    credits:6000, rep:20, compute:1,
+    credits:6000, rep:20,
+    tools:{chatbot:true, automation:false, rag:false, forecast:false, academy:false},
     mgrLevel:1, mgrXp:0, skillPoints:0,
-    skills:{scouting:0,training:0,verhandlung:0,finanzen:0},
-    agents:[], contracts:[], market:[], rivals:makeRivals(0),
+    skills:{vertrieb:0,didaktik:0,recruiting:0,methodik:0},
+    team:[], contracts:[], market:[], rivals:makeRivals(0),
     qRevenue:0, totalRevenue:0, projectsDone:0, projectsFailed:0,
-    training:null, training2:null,
+    training:null,
     insolvencyWarnings:0, buffReward:1, log:[],
     trophies:[], insights:{}, demoDone:false,
   };
-  for(let i=0;i<3;i++) s.agents.push(makeAgent(0, i===0?6:0));
+  for(let i=0;i<3;i++) s.team.push(makeConsultant(0, i===0?6:0));
   refreshContracts(s); refreshMarket(s);
-  addLog(s,'ev','Willkommen, '+manager+'! '+company+' startet im Segment „Lokale Kunden“. Weise Agenten den Aufträgen zu und simuliere die Woche – nach 12 Wochen gibt es den Abschlussbericht.');
+  addLog(s,'ev','Willkommen, '+manager+'! '+company+' berät ab sofort Kleinstbetriebe. Wähle Projekte, stelle dein Team zusammen – und vergiss die Schulung nicht!');
   return s;
 }
 function addLog(s,type,msg){ s.log.unshift({type,msg,w:'W'+s.week}); s.log=s.log.slice(0,40); }
 
-/* ---------------- Slots / Zuweisung ---------------- */
-function workSlots(s){ return 2+s.compute; }
+/* ---------------- Zuweisung ---------------- */
+function slots(s){ return s.team.length; }
 function usedSlots(s){ return s.contracts.reduce((n,c)=>n+c.assigned.length,0); }
-function trainingSlots(s){ return (s.skills.training>=3)?2:1; }
-function agentBusy(s,id){
+function busy(s,id){
   if(s.training&&s.training.agentId===id) return true;
-  if(s.training2&&s.training2.agentId===id) return true;
   return s.contracts.some(c=>c.assigned.includes(id));
 }
+function hasTool(s,c){ const t=USECASES[c.uc].tool; return !t||s.tools[t]; }
 function toggleAssign(cid,aid){
-  const c=state.contracts.find(x=>x.id===cid); if(!c) return;
+  const c=state.contracts.find(x=>x.id===cid); if(!c||!hasTool(state,c)) return;
   const i=c.assigned.indexOf(aid);
   if(i>=0){ c.assigned.splice(i,1); }
   else{
-    const a=state.agents.find(x=>x.id===aid);
-    if(!a||a.out>0) return;
-    if(agentBusy(state,aid)) return;
-    if(c.assigned.length>=3) return;
-    if(usedSlots(state)>=workSlots(state)) return;
+    const a=state.team.find(x=>x.id===aid);
+    if(!a||a.out>0||busy(state,aid)) return;
+    if(c.assigned.length>=2) return;
     c.assigned.push(aid);
   }
   render();
 }
+function toggleSchulung(cid){
+  const c=state.contracts.find(x=>x.id===cid); if(!c) return;
+  if(!c.schulung&&state.credits<150) return;
+  c.schulung=!c.schulung;
+  render();
+}
 
 /* ---------------- Berechnung ---------------- */
-function contractPower(s,c){
-  const cat=CATS[c.cat];
-  const list=c.assigned.map(id=>s.agents.find(a=>a.id===id)).filter(Boolean);
-  const weights=[1,0.6,0.4];
+function projectPower(s,c){
+  const uc=USECASES[c.uc];
+  const list=c.assigned.map(id=>s.team.find(a=>a.id===id)).filter(Boolean);
+  const weights=[1,0.6];
   const scored=list.map(a=>{
-    let p=0.6*a.stats[cat.primary]+0.3*a.stats[cat.secondary]+0.1*a.stats.stability;
+    let p=0.55*a.stats[uc.skills[0]]+0.3*a.stats[uc.skills[1]]+0.15*a.stats.sorgfalt;
     let condF=0.5+0.5*(a.cond/100); if(a.cond<30) condF*=0.7;
     let morF=0.8+0.4*(a.morale/100);
-    let syn=1; const ar=agentArch(a);
-    if(ar.cat===c.cat) syn=1.15; else if(ar.id==='gen') syn=1.07;
-    return p*condF*morF*syn;
+    return p*condF*morF;
   }).sort((a,b)=>b-a);
   return scored.reduce((sum,v,i)=>sum+v*(weights[i]||0),0);
 }
-function contractChance(s,c){
+function projectChance(s,c){
   if(c.assigned.length===0) return 0;
-  return clamp(Math.round(50+(contractPower(s,c)-c.diff)*1.2),5,95);
+  return clamp(Math.round(50+(projectPower(s,c)-c.diff)*1.2+2*(s.skills.methodik||0)),5,95);
+}
+function adoptionScore(s,c){
+  const list=c.assigned.map(id=>s.team.find(a=>a.id===id)).filter(Boolean);
+  if(list.length===0) return 0;
+  const soft=list.reduce((n,a)=>n+a.stats.didaktik*0.5+a.stats.kommunikation*0.5,0)/list.length;
+  let sc=35+soft*0.55+5*(s.skills.didaktik||0);
+  if(c.schulung) sc+=25;
+  if(s.tools.academy) sc+=10;
+  return clamp(Math.round(sc),5,99);
 }
 
-/* ---------------- Agent XP / Level ---------------- */
+/* ---------------- XP / Level ---------------- */
 function xpNeed(level){ return Math.round(80*Math.pow(level,1.35)); }
-function addAgentXp(s,a,amount){
-  const t=agentTrait(a);
-  a.xp+=Math.round(amount*(t.xpMult||1));
+function addXp(s,a,amount){
+  a.xp+=Math.round(amount*(traitOf(a).xpMult||1));
   while(a.xp>=xpNeed(a.level)&&a.level<30){
     a.xp-=xpNeed(a.level); a.level++;
-    const ar=agentArch(a);
-    a.stats[ar.focus[0]]=clamp(a.stats[ar.focus[0]]+2,1,100);
-    for(let i=0;i<2;i++){ const k=pick(Object.keys(STATS)); a.stats[k]=clamp(a.stats[k]+1,1,100); }
+    const r=roleOf(a);
+    a.stats[r.focus[0]]=clamp(a.stats[r.focus[0]]+2,1,100);
+    for(let i=0;i<2;i++){ const k=pick(Object.keys(SKILLS_C)); a.stats[k]=clamp(a.stats[k]+1,1,100); }
     a.value=Math.round(a.value*1.18);
     addLog(s,'good','⬆ '+a.name+' erreicht Level '+a.level+'!');
   }
@@ -505,144 +645,148 @@ function addMgrXp(s,amount){
   s.mgrXp+=amount;
   while(s.mgrXp>=mgrXpNeed(s.mgrLevel)){
     s.mgrXp-=mgrXpNeed(s.mgrLevel); s.mgrLevel++; s.skillPoints++;
-    addLog(s,'good','🎓 Manager-Level '+s.mgrLevel+' erreicht! +1 Skillpunkt.');
+    addLog(s,'good','🎓 Manager-Level '+s.mgrLevel+'! +1 Skillpunkt.');
   }
 }
 
 /* ---------------- Wochensimulation ---------------- */
 function simulateWeek(){
   const s=state;
-  const report={results:[],fin:[],event:null,quarter:null,final:false,gameover:false,didWork:false,hadTraining:false,hadDisaster:false};
+  const report={results:[],fin:[],event:null,quarter:null,final:false,gameover:false,didWork:false,hadTraining:false,hadDisaster:false,hadAdoptFail:false,hadCrit:false};
   let income=0, expense=0;
   s.week_extra_cost=0;
 
-  /* 1) Aufträge auflösen */
+  /* 1) Projekte auflösen: Technik UND Akzeptanz müssen stimmen */
   for(const c of s.contracts){
     if(c.assigned.length===0) continue;
-    const chance=contractChance(s,c);
-    const roll=Math.random()*100;
-    const agents=c.assigned.map(id=>s.agents.find(a=>a.id===id)).filter(Boolean);
-    let disasterRisk=10;
-    for(const a of agents){ const t=agentTrait(a); disasterRisk+=(t.disaster||0); disasterRisk-=a.stats.stability*0.06; }
+    if(c.schulung) expense+=150;
+    const chance=projectChance(s,c);
+    const adopt=adoptionScore(s,c);
+    const people=c.assigned.map(id=>s.team.find(a=>a.id===id)).filter(Boolean);
+    let disasterRisk=10-2*(s.skills.methodik||0);
+    for(const a of people){ disasterRisk+=(traitOf(a).disaster||0); disasterRisk-=a.stats.sorgfalt*0.06; }
     disasterRisk=clamp(disasterRisk,2,30);
-    let outcome, gain=0, repGain=0;
+    const techOK=Math.random()*100<chance;
+    const adoptOK=Math.random()*100<adopt;
     report.didWork=true;
-    if(roll<chance){
-      const crit=Math.random()*100<18;
-      outcome=crit?'crit':'ok';
-      gain=Math.round(c.reward*(crit?1.4:1)*s.buffReward);
-      repGain=c.rep+(crit?2:0);
-      income+=gain;
-      s.rep=clamp(s.rep+repGain,0,100);
+    if(techOK&&adoptOK){
+      const crit=Math.random()*100<16;
+      if(crit) report.hadCrit=true;
+      const gain=Math.round(c.reward*(crit?1.4:1)*s.buffReward);
+      const repGain=c.rep+(crit?2:0);
+      income+=gain; s.rep=clamp(s.rep+repGain,0,100);
       s.qRevenue+=gain; s.totalRevenue+=gain; s.projectsDone++;
-      agents.forEach(a=>{ addAgentXp(s,a,c.diff*(crit?1.5:1.2)); a.morale=clamp(a.morale+(agentTrait(a).moraleMult||1)*4,0,100); });
+      people.forEach(a=>{ addXp(s,a,c.diff*(crit?1.5:1.2)); a.morale=clamp(a.morale+(traitOf(a).moraleMult||1)*4,0,100); });
       addMgrXp(s,15+(crit?25:0));
-      report.results.push({cls:outcome, txt:(crit?'🌟 Glanzleistung':'✅ Erfolg')+' – „'+c.title+'“ ('+c.client+'): +'+fmt(gain)+' ¢, +'+repGain+' Rep'});
-      addLog(s,'good',(crit?'🌟 ':'✅ ')+c.title+' erfolgreich (+'+fmt(gain)+' ¢)');
+      report.results.push({cls:crit?'crit':'ok', txt:(crit?'🌟 Leuchtturm-Projekt':'✅ Erfolg')+' – „'+c.title+'“ ('+c.client+'): +'+fmt(gain)+' €, +'+repGain+' Ruf'});
+      addLog(s,'good',(crit?'🌟 ':'✅ ')+c.client+': '+c.title+' (+'+fmt(gain)+' €)');
+    } else if(techOK&&!adoptOK){
+      report.hadAdoptFail=true;
+      const gain=Math.round(c.reward*0.4);
+      income+=gain; s.qRevenue+=gain; s.totalRevenue+=gain;
+      s.rep=clamp(s.rep-3,0,100); s.projectsFailed++;
+      people.forEach(a=>{ addXp(s,a,c.diff*0.8); a.morale=clamp(a.morale-5,0,100); });
+      report.results.push({cls:'fail', txt:'😕 Nicht angenommen – „'+c.title+'“ ('+c.client+'): Technik lief, aber das Team nutzt sie nicht (Akzeptanz '+adopt+' %). Nur +'+fmt(gain)+' €, −3 Ruf'});
+      addLog(s,'bad','😕 '+c.client+': Lösung wird nicht genutzt');
     } else {
-      const dis=Math.random()*100<disasterRisk;
-      outcome=dis?'dis':'fail';
       s.projectsFailed++;
+      const dis=Math.random()*100<disasterRisk;
       if(dis){
         report.hadDisaster=true;
         const penalty=Math.round(c.reward*0.2);
         expense+=penalty; s.rep=clamp(s.rep-6,0,100);
-        report.results.push({cls:'dis', txt:'💥 Desaster – „'+c.title+'“: Vertragsstrafe −'+fmt(penalty)+' ¢, −6 Rep'});
-        addLog(s,'bad','💥 Desaster bei '+c.title+' (−'+fmt(penalty)+' ¢)');
+        report.results.push({cls:'dis', txt:'💥 Panne – „'+c.title+'“ ('+c.client+'): Fehler im Livebetrieb! −'+fmt(penalty)+' €, −6 Ruf'});
+        addLog(s,'bad','💥 Panne bei '+c.client+' (−'+fmt(penalty)+' €)');
       } else {
         s.rep=clamp(s.rep-2,0,100);
-        report.results.push({cls:'fail', txt:'❌ Fehlschlag – „'+c.title+'“ ('+chance+'% Chance): −2 Rep'});
-        addLog(s,'bad','❌ '+c.title+' fehlgeschlagen');
+        report.results.push({cls:'fail', txt:'❌ Gescheitert – „'+c.title+'“ ('+c.client+', '+chance+' % Chance): −2 Ruf'});
+        addLog(s,'bad','❌ '+c.client+': '+c.title+' gescheitert');
       }
-      agents.forEach(a=>{ addAgentXp(s,a,c.diff*0.6); a.morale=clamp(a.morale-(agentTrait(a).moraleMult||1)*(outcome==='dis'?12:7),0,100); });
+      people.forEach(a=>{ addXp(s,a,c.diff*0.6); a.morale=clamp(a.morale-(traitOf(a).moraleMult||1)*(dis?12:7),0,100); });
     }
   }
-  /* Nicht angenommene Aufträge gehen an die Konkurrenz – so funktioniert der Markt */
+  /* Liegengelassene Anfragen gehen an die Konkurrenz */
   let lost=0, lostRev=0;
   for(const c of s.contracts){
     if(c.assigned.length===0){ const r=pick(s.rivals); r.qRev+=c.reward; lost++; lostRev+=c.reward; }
   }
-  if(lost>0) report.results.push({cls:'fail', txt:'🏃 '+lost+' Auftrag'+(lost>1?'e':'')+' ('+fmt(lostRev)+' ¢) gingen an die Konkurrenz – der Markt wartet nicht.'});
+  if(lost>0) report.results.push({cls:'fail', txt:'🏃 '+lost+' Anfrage'+(lost>1?'n':'')+' ('+fmt(lostRev)+' €) gingen an die Konkurrenz.'});
   s.buffReward=1;
 
-  /* 2) Training */
-  for(const tr of [s.training,s.training2]){
-    if(!tr) continue;
-    const a=s.agents.find(x=>x.id===tr.agentId);
+  /* 2) Weiterbildung */
+  if(s.training){
+    const a=s.team.find(x=>x.id===s.training.agentId);
     if(a&&a.out===0){
-      const gain=3+rnd(0,2)+(s.skills.training||0);
-      a.stats[tr.stat]=clamp(a.stats[tr.stat]+gain,1,100);
+      const gain=3+rnd(0,2)+(s.skills.methodik||0);
+      a.stats[s.training.stat]=clamp(a.stats[s.training.stat]+gain,1,100);
       a.cond=clamp(a.cond-15,0,100);
-      addAgentXp(s,a,25);
+      addXp(s,a,25);
       report.hadTraining=true;
-      report.results.push({cls:'ok',txt:'🏋️ Training: '+a.name+' +'+gain+' '+STATS[tr.stat]});
+      report.results.push({cls:'ok',txt:'🏋️ Weiterbildung: '+a.name+' +'+gain+' '+SKILLS_C[s.training.stat]});
     }
+    s.training=null;
   }
-  s.training=null; s.training2=null;
 
-  /* 3) Zustand, Moral, Überhitzung */
-  const workedIds=new Set(); s.contracts.forEach(c=>c.assigned.forEach(id=>workedIds.add(id)));
-  for(const a of s.agents){
-    const t=agentTrait(a);
+  /* 3) Energie, Stimmung, Ausfall */
+  const worked=new Set(); s.contracts.forEach(c=>c.assigned.forEach(id=>worked.add(id)));
+  for(const a of s.team){
+    const t=traitOf(a);
     if(a.out>0){ a.out--; a.cond=clamp(a.cond+25,0,100); continue; }
-    if(workedIds.has(a.id)){
+    if(worked.has(a.id)){
       a.cond=clamp(a.cond-Math.round(22*(t.condMult||1)),0,100);
       if(a.cond<30&&Math.random()<0.35){
         a.out=rnd(1,2);
-        report.results.push({cls:'dis',txt:'🔥 Überhitzung: '+a.name+' fällt '+a.out+' Woche(n) aus!'});
-        addLog(s,'bad','🔥 '+a.name+' überhitzt ('+a.out+' Wo. Ausfall)');
+        report.results.push({cls:'dis',txt:'🤒 Überlastet: '+a.name+' fällt '+a.out+' Woche(n) aus!'});
+        addLog(s,'bad','🤒 '+a.name+' ist ausgebrannt ('+a.out+' Wo.)');
       }
     } else {
       a.cond=clamp(a.cond+18,0,100);
-      a.morale+=a.morale<60?2:(a.morale>60?-1:0);
-      a.morale=clamp(a.morale,0,100);
+      a.morale=clamp(a.morale+(a.morale<60?2:a.morale>60?-1:0),0,100);
     }
   }
 
   /* 4) Finanzen */
-  const salaries=s.agents.reduce((n,a)=>n+a.salary,0);
-  const energy=s.compute*80;
-  const finSkill=1-0.06*(s.skills.finanzen||0);
-  const fixcost=Math.round(SEGMENTS[s.tier].fixcost*finSkill);
-  expense+=salaries+energy+fixcost;
+  const salaries=s.team.reduce((n,a)=>n+a.salary,0);
+  const cloud=100+40*Object.values(s.tools).filter(Boolean).length;
+  const fixcost=SEGMENTS[s.tier].fixcost;
+  const schulungCost=s.contracts.filter(c=>c.assigned.length&&c.schulung).length*150;
+  expense+=salaries+cloud+fixcost;
   s.credits+=income-expense;
-  report.fin.push(['Auftragseinnahmen','+'+fmt(income)]);
+  report.fin.push(['Projekthonorare','+'+fmt(income)]);
+  if(schulungCost) report.fin.push(['Schulungs-Add-ons','−'+fmt(schulungCost)]);
   report.fin.push(['Gehälter','−'+fmt(salaries)]);
-  report.fin.push(['Energie (Cluster St. '+s.compute+')','−'+fmt(energy)]);
-  report.fin.push(['Bürokosten (Segment '+SEGMENTS[s.tier].name+')','−'+fmt(fixcost)]);
-  if(s.week_extra_cost) report.fin.push(['Sonderkosten (Event)','−'+fmt(s.week_extra_cost)]);
+  report.fin.push(['KI-Tools & Cloud','−'+fmt(cloud)]);
+  report.fin.push(['Büro ('+SEGMENTS[s.tier].name+')','−'+fmt(fixcost)]);
+  if(s.week_extra_cost) report.fin.push(['Sonderkosten (Ereignis)','−'+fmt(s.week_extra_cost)]);
   report.fin.push(['Bilanz',(income-expense>=0?'+':'−')+fmt(Math.abs(income-expense))]);
 
-  /* 5) Umsatz der Mitbewerber (simuliert) */
+  /* 5) Umsatz der Konkurrenz */
   const Lg=SEGMENTS[s.tier];
-  for(const r of s.rivals){
-    r.qRev+=Math.round(r.power*25*(0.55+Math.random()*0.9)*Lg.reward);
-  }
+  for(const r of s.rivals) r.qRev+=Math.round(r.power*25*(0.55+Math.random()*0.9)*Lg.reward);
 
-  /* 6) Event */
+  /* 6) Ereignis */
   const ev=pick(EVENTS);
   report.event=ev;
   if(ev.effect){ s.lastEventNote=null; ev.effect(s); addLog(s,'ev','📡 '+ev.title); }
 
-  /* 7) Manager-XP Grundrate */
+  /* 7) Manager-XP */
   addMgrXp(s,20);
 
   /* 8) Insolvenz */
   if(s.credits<0){
     s.insolvencyWarnings++;
-    if(s.insolvencyWarnings>=2){ report.gameover=true; }
-    else report.fin.push(['⚠ MAHNUNG','Konto im Minus! Noch 1 Woche bis zur Insolvenz.']);
+    if(s.insolvencyWarnings>=2) report.gameover=true;
+    else report.fin.push(['⚠ MAHNUNG','Konto im Minus! Noch 1 Woche.']);
   } else s.insolvencyWarnings=0;
 
-  /* 9) Quartalsende / Abschlussbericht */
+  /* 9) Quartal / Abschluss */
   s.week++;
-  const finishedWeek=s.week-1;
+  const fw=s.week-1;
   if(!report.gameover){
-    if(finishedWeek%QUARTER_LEN===0) report.quarter=endQuarter(s);
-    if(finishedWeek===DEMO_WEEKS&&!s.demoDone){ s.demoDone=true; report.final=true; }
+    if(fw%QUARTER_LEN===0) report.quarter=endQuarter(s);
+    if(fw===DEMO_WEEKS&&!s.demoDone){ s.demoDone=true; report.final=true; }
   }
 
-  /* 10) Neue Angebote */
   refreshContracts(s); refreshMarket(s);
   save(); render();
   showWeekReport(report);
@@ -654,20 +798,19 @@ function marketTable(s){
   rows.sort((a,b)=>b.rev-a.rev);
   return rows;
 }
-
 function endQuarter(s){
   const table=marketTable(s);
   const pos=table.findIndex(r=>r.me)+1;
   const total=table.reduce((n,r)=>n+r.rev,0)||1;
   const q=Math.floor((s.week-2)/QUARTER_LEN)+1;
-  const out={q, pos, share:Math.round(100*s.qRevenue/total), rev:s.qRevenue, promoted:false, segment:SEGMENTS[s.tier].name};
+  const out={q,pos,share:Math.round(100*s.qRevenue/total),rev:s.qRevenue,promoted:false,segment:SEGMENTS[s.tier].name};
   const next=SEGMENTS[s.tier+1];
   if(next&&s.rep>=next.repGate){
     s.tier++; out.promoted=true; out.segment=SEGMENTS[s.tier].name;
-    s.trophies.push('🚀 Aufstieg ins Segment „'+SEGMENTS[s.tier].name+'“ (Woche '+(s.week-1)+')');
+    s.trophies.push('🚀 Neues Kundensegment: „'+SEGMENTS[s.tier].name+'“ (Woche '+(s.week-1)+')');
     s.rivals=makeRivals(s.tier);
     addMgrXp(s,200);
-    addLog(s,'good','🚀 Neues Kundensegment erschlossen: '+SEGMENTS[s.tier].name+'!');
+    addLog(s,'good','🚀 Aufstieg: '+SEGMENTS[s.tier].name+'!');
   }
   s.rivals.forEach(r=>r.qRev=0);
   s.qRevenue=0;
@@ -676,115 +819,105 @@ function endQuarter(s){
 }
 
 /* ---------------- Aktionen ---------------- */
-function buyAgent(id){
-  const a=state.market.find(x=>x.id===id); if(!a) return;
-  if(state.credits<a.price) return;
+function hireConsultant(id){
+  const a=state.market.find(x=>x.id===id); if(!a||state.credits<a.price) return;
   state.credits-=a.price;
   state.market=state.market.filter(x=>x.id!==id);
   delete a.price;
-  state.agents.push(a);
-  addLog(state,'ev','🤝 '+a.name+' verpflichtet.');
+  state.team.push(a);
+  addLog(state,'ev','🤝 '+a.name+' verstärkt das Team.');
   save(); render();
 }
-function sellAgent(id){
-  const a=state.agents.find(x=>x.id===id); if(!a) return;
-  if(state.agents.length<=1) return;
-  openModal('Verkauf bestätigen',
-    '<p>'+esc(a.name)+' für <b class="num">'+fmt(a.value)+' ¢</b> verkaufen?</p>',
-    [{label:'Verkaufen',cls:'mb-main',fn:()=>{ state.credits+=a.value; removeAgent(state,id); addLog(state,'ev','💸 '+a.name+' verkauft (+'+fmt(a.value)+' ¢)'); save(); closeModal(); render(); }},
+function fireConsultant(id){
+  const a=state.team.find(x=>x.id===id); if(!a||state.team.length<=1) return;
+  openModal('Trennung bestätigen',
+    '<p>'+esc(a.name)+' verlassen lassen? Abfindung: <b class="num">'+fmt(Math.round(a.salary*2))+' €</b></p>',
+    [{label:'Trennen',cls:'mb-main',fn:()=>{ state.credits-=Math.round(a.salary*2); removeConsultant(state,id); addLog(state,'ev','👋 '+a.name+' hat das Team verlassen.'); save(); closeModal(); render(); }},
      {label:'Abbrechen',cls:'mb-alt',fn:closeModal}]);
 }
 function setTraining(agentId){
-  const a=state.agents.find(x=>x.id===agentId); if(!a||a.out>0) return;
-  const slot1Free=!state.training, slot2Free=trainingSlots(state)>1&&!state.training2;
-  const already=(state.training&&state.training.agentId===agentId)||(state.training2&&state.training2.agentId===agentId);
-  if(already){
-    if(state.training&&state.training.agentId===agentId) state.training=null;
-    if(state.training2&&state.training2.agentId===agentId) state.training2=null;
-    render(); return;
-  }
-  if(!slot1Free&&!slot2Free) return;
+  const a=state.team.find(x=>x.id===agentId); if(!a||a.out>0) return;
+  if(state.training&&state.training.agentId===agentId){ state.training=null; render(); return; }
+  if(state.training) return;
   if(state.contracts.some(c=>c.assigned.includes(agentId))) return;
   let opts='';
-  for(const k of Object.keys(STATS)) opts+='<option value="'+k+'">'+STATS[k]+' ('+a.stats[k]+')</option>';
-  openModal('Training: '+esc(a.name),
-    '<p class="muted" style="margin-bottom:10px">Fokus-Attribut wählen (+'+(3+(state.skills.training||0))+'–'+(5+(state.skills.training||0))+' Punkte, kostet 150 ¢, Agent arbeitet diese Woche nicht):</p>'+
+  for(const k of Object.keys(SKILLS_C)) opts+='<option value="'+k+'">'+SKILLS_C[k]+' ('+a.stats[k]+')</option>';
+  openModal('Weiterbildung: '+esc(a.name),
+    '<p class="muted" style="margin-bottom:10px">Fokus wählen (+'+(3+(state.skills.methodik||0))+'–'+(5+(state.skills.methodik||0))+' Punkte, 150 €, eine Woche keine Projekte):</p>'+
     '<select id="train-stat" style="width:100%">'+opts+'</select>',
-    [{label:'Training starten',cls:'mb-main',fn:()=>{
+    [{label:'Weiterbildung buchen',cls:'mb-main',fn:()=>{
         if(state.credits<150){ closeModal(); return; }
         state.credits-=150;
-        const stat=$('train-stat').value;
-        const tr={agentId,stat};
-        if(!state.training) state.training=tr; else state.training2=tr;
+        state.training={agentId,stat:$('train-stat').value};
         save(); closeModal(); render();
       }},
      {label:'Abbrechen',cls:'mb-alt',fn:closeModal}]);
 }
-function upgradeCompute(){
-  const cost=computeCost();
-  if(state.compute>=5||state.credits<cost) return;
-  state.credits-=cost; state.compute++;
-  addLog(state,'ev','🖥 GPU-Cluster auf Stufe '+state.compute+' ausgebaut (+1 Slot).');
+function buyTool(key){
+  const t=TOOLS[key];
+  if(!t||state.tools[key]||state.credits<t.cost) return;
+  state.credits-=t.cost; state.tools[key]=true;
+  addLog(state,'ev','🧰 Neuer Baustein: '+t.name);
   save(); render();
-  if(!state.insights.upgrade){
-    state.insights.upgrade=true; save();
-    openModal('💡 Insight','<p>'+INSIGHTS.upgrade+'</p><p class="muted" style="margin-top:10px;font-size:.8rem">Genau so arbeitet '+esc(BRAND.agency)+' wirklich.</p>',
+  if(!state.insights.tool){
+    state.insights.tool=true; save();
+    openModal('💡 Insight','<p>'+INSIGHTS.tool+'</p><p class="muted" style="margin-top:10px;font-size:.8rem">So arbeitet '+esc(BRAND.agency)+' wirklich.</p>',
       [{label:'Verstanden',cls:'mb-main',fn:closeModal}],'ev');
   }
 }
-function computeCost(){ return [0,2500,6000,15000,40000][state.compute]||Infinity; }
 function spendSkill(key){
   if(state.skillPoints<=0||state.skills[key]>=5) return;
   state.skillPoints--; state.skills[key]++;
-  addLog(state,'ev','🎓 Skill „'+SKILLS[key].name+'“ auf Stufe '+state.skills[key]+'.');
+  addLog(state,'ev','🎓 Skill „'+MSKILLS[key].name+'“ auf Stufe '+state.skills[key]+'.');
   save(); render();
 }
 
 /* ---------------- Modal ---------------- */
 let modalQueue=[];
 function openModal(title,html,buttons,evClass){
-  const w=$('modal-wrap'), c=$('modal-content');
+  const c=$('modal-content');
   c.innerHTML='<h2 class="'+(evClass||'')+'">'+title+'</h2>'+html;
-  const btnWrap=document.createElement('div'); btnWrap.className='modal-btns';
+  const wrap=document.createElement('div'); wrap.className='modal-btns';
   for(const b of buttons){
     const el=document.createElement('button'); el.className=b.cls||'mb-alt'; el.textContent=b.label;
-    el.onclick=b.fn; btnWrap.appendChild(el);
+    el.onclick=b.fn; wrap.appendChild(el);
   }
-  c.appendChild(btnWrap);
-  w.classList.remove('hidden');
+  c.appendChild(wrap);
+  $('modal-wrap').classList.remove('hidden');
 }
 function closeModal(){
   $('modal-wrap').classList.add('hidden');
-  if(modalQueue.length){ const next=modalQueue.shift(); next(); }
+  if(modalQueue.length){ modalQueue.shift()(); }
 }
-
 function queueInsight(key){
   if(!state.insights) state.insights={};
   if(state.insights[key]||!INSIGHTS[key]) return;
   state.insights[key]=true;
   modalQueue.push(()=>openModal('💡 Insight',
-    '<p>'+INSIGHTS[key]+'</p><p class="muted" style="margin-top:10px;font-size:.8rem">Genau so arbeitet '+esc(BRAND.agency)+' wirklich.</p>',
+    '<p>'+INSIGHTS[key]+'</p><p class="muted" style="margin-top:10px;font-size:.8rem">So arbeitet '+esc(BRAND.agency)+' wirklich.</p>',
     [{label:'Verstanden',cls:'mb-main',fn:closeModal}],'ev'));
 }
 
 function showWeekReport(report){
   if(report.gameover){ showGameOver(); return; }
   const s=state;
+  if(report.hadCrit) confetti();
   let html='<div style="margin-bottom:14px">';
   for(const r of report.results) html+='<div class="report-item '+r.cls+'">'+r.txt+'</div>';
-  html+='</div><h3 style="font-size:.8rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px">Finanzen</h3>';
-  for(const [k,v] of report.fin) html+='<div class="fin-row"><span>'+k+'</span><span class="num">'+v+'</span></div>';
-  html+='<p style="margin-top:12px" class="muted">Umsatz dieses Quartal: <b class="acc num">'+fmt(s.qRevenue)+' ¢</b> · Segment: '+SEGMENTS[s.tier].name+'</p>';
+  html+='</div><h3 style="font-size:.78rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;font-weight:900">Finanzen</h3>';
+  for(const [k,v] of report.fin) html+='<div class="fin-row"><span>'+k+'</span><span class="num">'+v+' €</span></div>';
+  html+='<p style="margin-top:12px" class="muted">Umsatz dieses Quartal: <b class="cy num">'+fmt(s.qRevenue)+' €</b> · Segment: '+SEGMENTS[s.tier].name+'</p>';
 
   modalQueue=[];
   if(report.didWork) queueInsight('sim');
+  if(report.hadAdoptFail) queueInsight('adoption');
   if(report.hadTraining) queueInsight('training');
   if(report.hadDisaster) queueInsight('disaster');
   const ev=report.event;
   if(ev){
     modalQueue.push(()=>{
       let evHtml='<p>'+ev.text+'</p>';
-      if(state.lastEventNote) evHtml+='<p class="acc" style="margin-top:8px">'+esc(state.lastEventNote)+'</p>';
+      if(state.lastEventNote) evHtml+='<p class="cy" style="margin-top:8px">'+esc(state.lastEventNote)+'</p>';
       if(ev.choices){
         openModal('📡 '+ev.title,evHtml,ev.choices.map(ch=>({
           label:ch.label,cls:'mb-alt',
@@ -799,10 +932,11 @@ function showWeekReport(report){
   if(report.quarter){
     const qd=report.quarter;
     modalQueue.push(()=>{
-      let t='<p>Quartal '+qd.q+' abgeschlossen: Platz <b class="acc num">'+qd.pos+'</b> im Markt-Ranking · Marktanteil <b class="num">'+qd.share+' %</b> · Umsatz <b class="num">'+fmt(qd.rev)+' ¢</b>.</p>';
-      if(qd.promoted) t+='<p class="good" style="margin-top:8px">🚀 Deine Reputation öffnet ein neues Kundensegment: <b>'+qd.segment+'</b> – größere Projekte, stärkere Mitbewerber.</p>';
-      else t+='<p class="muted" style="margin-top:8px">Mehr Reputation schaltet das nächste Kundensegment frei.</p>';
-      openModal('Quartalsbericht – Q'+qd.q,t,[{label:'Weiter',cls:'mb-main',fn:closeModal}]);
+      if(qd.promoted) confetti();
+      let t='<p>Quartal '+qd.q+': Platz <b class="cy num">'+qd.pos+'</b> im Markt · Marktanteil <b class="num">'+qd.share+' %</b> · Umsatz <b class="num">'+fmt(qd.rev)+' €</b>.</p>';
+      if(qd.promoted) t+='<p class="good" style="margin-top:8px">🚀 Euer Ruf öffnet ein neues Kundensegment: <b>'+qd.segment+'</b> – größere Projekte, stärkere Konkurrenz!</p>';
+      else t+='<p class="muted" style="margin-top:8px">Mehr Ruf schaltet das nächste Kundensegment frei.</p>';
+      openModal('📊 Quartalsbericht – Q'+qd.q,t,[{label:'Weiter',cls:'mb-main',fn:closeModal}]);
     });
   }
   if(report.final) modalQueue.push(showFinalReport);
@@ -810,24 +944,25 @@ function showWeekReport(report){
 }
 
 function showFinalReport(){
+  confetti();
   const s=state;
   const html=
-    '<p>12 Wochen an der Spitze deiner eigenen KI-Agentur – dein Ergebnis:</p>'+
+    '<p>12 Wochen deine eigene KI-Beratung – dein Ergebnis:</p>'+
     '<div style="margin:12px 0">'+
-    '<div class="fin-row"><span>Gesamtumsatz</span><span class="num acc">'+fmt(s.totalRevenue)+' ¢</span></div>'+
+    '<div class="fin-row"><span>Gesamtumsatz</span><span class="num cy">'+fmt(s.totalRevenue)+' €</span></div>'+
     '<div class="fin-row"><span>Projekte erfolgreich / gescheitert</span><span class="num">'+s.projectsDone+' / '+s.projectsFailed+'</span></div>'+
-    '<div class="fin-row"><span>Reputation</span><span class="num">'+s.rep+'/100</span></div>'+
+    '<div class="fin-row"><span>Ruf</span><span class="num">'+s.rep+'/100</span></div>'+
     '<div class="fin-row"><span>Kundensegment</span><span>'+SEGMENTS[s.tier].name+'</span></div>'+
     '<div class="fin-row"><span>Manager-Level</span><span class="num">'+s.mgrLevel+'</span></div>'+
     '</div>'+
-    '<h3 style="font-size:.8rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin:14px 0 8px">Und genau das machen wir wirklich</h3>'+
-    '<div class="report-item ok">🧠 Agenten nach Stärken einsetzen → Modell- &amp; Tool-Auswahl passend zum Use Case</div>'+
-    '<div class="report-item ok">🏋️ Training → Fine-Tuning, Prompt-Engineering &amp; Evaluation</div>'+
-    '<div class="report-item ok">🖥 Cluster-Ausbau → Infrastruktur &amp; Kosten richtig dimensionieren</div>'+
-    '<div class="report-item ok">🛡 Stabilität statt Desaster → Qualitätssicherung mit Human-in-the-Loop</div>'+
-    '<div class="report-item ok">🚀 Segment-Aufstieg → Referenzen öffnen größere Projekte</div>'+
+    '<h3 style="font-size:.78rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin:14px 0 8px;font-weight:900">Und genau das machen wir wirklich</h3>'+
+    '<div class="report-item ok">🧭 Use-Case zuerst → Wir finden die Stellen, wo KI in eurem Betrieb wirklich Geld spart</div>'+
+    '<div class="report-item ok">🧰 Passende Bausteine → Chatbot, Automatisierung, Wissens-KI – nur was zu euch passt</div>'+
+    '<div class="report-item ok">🎓 Schulung & Change → Damit euer Team die Lösung annimmt und nutzt</div>'+
+    '<div class="report-item ok">🛡 Sorgfalt & Datenschutz → Tests, Checklisten und DSGVO von Anfang an</div>'+
+    '<div class="report-item ok">🚀 Schritt für Schritt → Vom ersten Workshop bis zur Lösung im Alltag</div>'+
     '<p class="muted" style="margin-top:14px">Neugierig, wie das für dein Unternehmen aussieht?</p>';
-  openModal('Abschlussbericht – '+esc(s.company),html,
+  openModal('🏁 Abschlussbericht – '+esc(s.company),html,
     [{label:BRAND.ctaText,cls:'mb-main',fn:()=>{ window.open(BRAND.ctaUrl,'_blank'); }},
      {label:'Weiterspielen (freies Spiel)',cls:'mb-alt',fn:closeModal}]);
 }
@@ -835,10 +970,11 @@ function showFinalReport(){
 function showGameOver(){
   const s=state;
   $('gameover-card').innerHTML=
-    '<div class="logo" style="font-size:1.5rem"><span class="bad">INSOLVENZ</span></div>'+
+    '<div class="logo-badge" style="background:linear-gradient(135deg,#f87171,#b91c1c)">💸</div>'+
+    '<div class="logo"><b>INSOLVENZ</b></div>'+
     '<p class="tagline" style="margin-top:10px">'+esc(s.company)+' ist zahlungsunfähig.<br>'+
-    'Erreicht: Segment '+SEGMENTS[s.tier].name+' · Woche '+s.week+' · Manager-Level '+s.mgrLevel+'</p>'+
-    (s.trophies.length?'<p style="margin-bottom:14px">'+s.trophies.join('<br>')+'</p>':'')+
+    'Erreicht: '+SEGMENTS[s.tier].name+' · Woche '+s.week+' · Manager-Level '+s.mgrLevel+'</p>'+
+    (s.trophies.length?'<p style="margin-bottom:14px;font-size:.85rem">'+s.trophies.join('<br>')+'</p>':'')+
     '<button class="btn-primary" onclick="resetGame(true)">Neu gründen</button>';
   $('gameover-screen').classList.add('show');
 }
@@ -851,7 +987,6 @@ function showTab(t){
   ['zentrale','auftraege','team','markt','liga'].forEach(x=>$('tab-'+x).classList.toggle('hidden',x!==t));
   render();
 }
-
 function render(){
   if(!state) return;
   renderHeader();
@@ -861,18 +996,18 @@ function render(){
   if(activeTab==='markt') renderMarkt();
   if(activeTab==='liga') renderLiga();
 }
-
 function renderHeader(){
   const s=state;
-  $('h-company').textContent=s.company+' · '+s.manager;
+  $('h-company').textContent=s.company;
+  $('h-sub').textContent='Inhaber:in '+s.manager;
   $('h-league').innerHTML='🎯 <b>'+SEGMENTS[s.tier].name+'</b>';
   $('h-week').innerHTML=s.demoDone
     ? 'Woche <b>'+s.week+'</b> · freies Spiel'
-    : 'Woche <b>'+s.week+'/'+DEMO_WEEKS+'</b> · Quartal <b>'+(Math.floor((s.week-1)/QUARTER_LEN)+1)+'</b>';
-  $('h-credits').textContent=fmt(s.credits)+' ¢';
+    : 'Woche <b>'+s.week+'/'+DEMO_WEEKS+'</b> · Q<b>'+(Math.floor((s.week-1)/QUARTER_LEN)+1)+'</b>';
+  $('h-credits').textContent=fmt(s.credits)+' €';
   $('h-credits').className='val num '+(s.credits<0?'bad':s.credits<800?'warn':'');
   $('h-rep').textContent=s.rep+'/100';
-  $('h-slots').textContent=usedSlots(s)+'/'+workSlots(s);
+  $('h-slots').textContent=usedSlots(s)+'/'+slots(s);
   $('h-mlvl').textContent='Lv '+s.mgrLevel;
   $('h-mxp').style.width=Math.round(100*s.mgrXp/mgrXpNeed(s.mgrLevel))+'%';
 }
@@ -880,72 +1015,84 @@ function renderHeader(){
 function renderZentrale(){
   const s=state;
   const table=marketTable(s); const pos=table.findIndex(r=>r.me)+1;
-  const salaries=s.agents.reduce((n,a)=>n+a.salary,0);
-  const fixcost=Math.round(SEGMENTS[s.tier].fixcost*(1-0.06*(s.skills.finanzen||0)));
-  const energy=s.compute*80;
+  const salaries=s.team.reduce((n,a)=>n+a.salary,0);
+  const cloud=100+40*Object.values(s.tools).filter(Boolean).length;
+  const fixcost=SEGMENTS[s.tier].fixcost;
+  let toolsHtml='';
+  for(const k of Object.keys(TOOLS)){
+    const t=TOOLS[k], owned=s.tools[k];
+    toolsHtml+='<div class="tool"><div class="tool-icon" style="background:linear-gradient(135deg,'+t.grad[0]+','+t.grad[1]+')">'+t.icon+'</div>'+
+      '<div><div class="tool-name">'+t.name+'</div><div class="tool-desc">'+t.desc+'</div></div>'+
+      '<div class="own">'+(owned
+        ?'<span class="own-badge">✓ im Einsatz</span>'
+        :'<button class="btn-buy" onclick="buyTool(\''+k+'\')" '+(s.credits<t.cost?'disabled':'')+'>'+fmt(t.cost)+' €</button>')+'</div></div>';
+  }
   let skillHtml='';
-  for(const k of Object.keys(SKILLS)){
+  for(const k of Object.keys(MSKILLS)){
     const lvl=s.skills[k];
     let pips=''; for(let i=0;i<5;i++) pips+='<div class="pip'+(i<lvl?' on':'')+'"></div>';
-    skillHtml+='<div class="skill"><div><b>'+SKILLS[k].name+'</b><br><span class="muted" style="font-size:.75rem">'+SKILLS[k].desc+'</span></div>'+
+    skillHtml+='<div class="skill"><div><b>'+MSKILLS[k].name+'</b><br><span class="muted" style="font-size:.74rem">'+MSKILLS[k].desc+'</span></div>'+
       '<div style="display:flex;align-items:center;gap:10px"><div class="pips">'+pips+'</div>'+
       '<button class="btn-sm" onclick="spendSkill(\''+k+'\')" '+(s.skillPoints<=0||lvl>=5?'disabled':'')+'>+</button></div></div>';
   }
   let logHtml='';
-  for(const l of s.log) logHtml+='<div class="lg-'+l.type+'"><span class="muted num" style="font-size:.7rem">'+l.w+'</span> '+esc(l.msg)+'</div>';
-  const cc=computeCost();
+  for(const l of s.log) logHtml+='<div class="lg-'+l.type+'"><span class="muted num" style="font-size:.68rem">'+l.w+'</span> '+esc(l.msg)+'</div>';
   $('tab-zentrale').innerHTML=
   '<div class="grid grid-2">'+
     '<div class="card"><h3>Lagebericht</h3>'+
-      '<div class="kpi"><span>Kundensegment</span><span class="v acc">'+SEGMENTS[s.tier].name+' · Platz '+pos+' im Markt</span></div>'+
-      '<div class="kpi"><span>Umsatz (Quartal)</span><span class="v">'+fmt(s.qRevenue)+' ¢</span></div>'+
-      '<div class="kpi"><span>Umsatz (gesamt)</span><span class="v">'+fmt(s.totalRevenue)+' ¢</span></div>'+
-      '<div class="kpi"><span>Reputation</span><span class="v">'+s.rep+'/100</span></div>'+
-      '<div class="kpi"><span>Agenten im Kader</span><span class="v">'+s.agents.length+'</span></div>'+
-      '<div class="kpi"><span>Meilensteine</span><span class="v">'+(s.trophies.length||'–')+'</span></div>'+
+      '<div class="kpi"><span>Kundensegment</span><span class="v cy">'+SEGMENTS[s.tier].name+' · Platz '+pos+'</span></div>'+
+      '<div class="kpi"><span>Umsatz (Quartal)</span><span class="v num">'+fmt(s.qRevenue)+' €</span></div>'+
+      '<div class="kpi"><span>Umsatz (gesamt)</span><span class="v num">'+fmt(s.totalRevenue)+' €</span></div>'+
+      '<div class="kpi"><span>Ruf</span><span class="v num">'+s.rep+'/100</span></div>'+
+      '<div class="kpi"><span>Meilensteine</span><span class="v num">'+(s.trophies.length||'–')+'</span></div>'+
     '</div>'+
     '<div class="card"><h3>Wöchentliche Kosten</h3>'+
-      '<div class="kpi"><span>Gehälter</span><span class="v">−'+fmt(salaries)+' ¢</span></div>'+
-      '<div class="kpi"><span>Energie (Cluster)</span><span class="v">−'+fmt(energy)+' ¢</span></div>'+
-      '<div class="kpi"><span>Bürokosten (Segment)</span><span class="v">−'+fmt(fixcost)+' ¢</span></div>'+
-      '<div class="kpi"><span><b>Summe</b></span><span class="v bad">−'+fmt(salaries+energy+fixcost)+' ¢</span></div>'+
+      '<div class="kpi"><span>Gehälter ('+s.team.length+' Personen)</span><span class="v num">−'+fmt(salaries)+' €</span></div>'+
+      '<div class="kpi"><span>KI-Tools &amp; Cloud</span><span class="v num">−'+fmt(cloud)+' €</span></div>'+
+      '<div class="kpi"><span>Büro</span><span class="v num">−'+fmt(fixcost)+' €</span></div>'+
+      '<div class="kpi"><span><b>Summe</b></span><span class="v num bad">−'+fmt(salaries+cloud+fixcost)+' €</span></div>'+
     '</div>'+
-    '<div class="card"><h3>GPU-Cluster (Stufe '+s.compute+'/5)</h3>'+
-      '<p class="muted" style="font-size:.85rem;margin-bottom:10px">Bestimmt deine Arbeits-Slots: <b class="acc">'+workSlots(s)+'</b> Agenten können pro Woche eingesetzt werden.</p>'+
-      (s.compute<5
-        ?'<button class="btn-sm" onclick="upgradeCompute()" '+(s.credits<cc?'disabled':'')+'>Ausbau auf Stufe '+(s.compute+1)+' – '+fmt(cc)+' ¢</button>'
-        :'<p class="good">Maximale Ausbaustufe erreicht.</p>')+
-    '</div>'+
-    '<div class="card"><h3>Manager-Skilltree <span class="goldc">('+s.skillPoints+' Punkte frei)</span></h3>'+skillHtml+'</div>'+
+    '<div class="card"><h3>🧰 KI-Toolbox</h3>'+toolsHtml+'</div>'+
+    '<div class="card"><h3>Deine Manager-Skills <span class="goldc">('+s.skillPoints+' Punkte frei)</span></h3>'+skillHtml+'</div>'+
     '<div class="card" style="grid-column:1/-1"><h3>Logbuch</h3><div class="log">'+(logHtml||'<div>Noch keine Einträge.</div>')+'</div></div>'+
   '</div>';
 }
 
 function renderAuftraege(){
   const s=state;
-  let html='<div class="slots-info">Arbeits-Slots: <b class="acc num">'+usedSlots(s)+'/'+workSlots(s)+'</b> belegt · max. 3 Agenten pro Auftrag · Klick auf einen Agenten-Chip weist zu.</div><div class="grid grid-2">';
+  let html='<div class="slots-info">Team im Einsatz: <b class="cy num">'+usedSlots(s)+'/'+slots(s)+'</b> · max. 2 pro Projekt · 🎓 Schulung erhöht die Akzeptanz deutlich (150 €).</div><div class="grid grid-2">';
   for(const c of s.contracts){
-    const chance=contractChance(s,c);
+    const uc=USECASES[c.uc];
+    const unlocked=hasTool(s,c);
+    const chance=projectChance(s,c);
+    const adopt=adoptionScore(s,c);
     const chColor=chance>=70?'good':chance>=45?'warn':'bad';
+    const adColor=adopt>=70?'good':adopt>=45?'warn':'bad';
     let chips='';
-    for(const a of s.agents){
+    for(const a of s.team){
       const sel=c.assigned.includes(a.id);
-      const busyElsewhere=!sel&&agentBusy(s,a.id);
-      const noSlot=!sel&&usedSlots(s)>=workSlots(s);
-      const dis=a.out>0||busyElsewhere||(!sel&&(noSlot||c.assigned.length>=3));
+      const other=!sel&&busy(s,a.id);
+      const dis=!unlocked||a.out>0||other||(!sel&&c.assigned.length>=2);
       chips+='<button class="chip'+(sel?' sel':'')+'" '+(dis?'disabled':'')+' onclick="toggleAssign('+c.id+','+a.id+')">'+
-        esc(a.name)+(a.out>0?' 🔥':busyElsewhere?' ⏳':'')+'</button>';
+        '<span class="mini">'+avatarSVG(a.seed,26)+'</span>'+esc(a.name.split(' ')[0])+(a.out>0?' 🤒':other?' ⏳':'')+'</button>';
     }
-    html+='<div class="contract'+(c.assigned.length?' assigned-any':'')+'">'+
-      '<div class="c-head"><div><div class="c-title">'+esc(c.title)+'</div><div class="c-client">'+esc(c.client)+'</div></div>'+
-      '<div style="display:flex;gap:6px;flex-direction:column;align-items:flex-end"><span class="tag cat">'+CATS[c.cat].label+'</span><span class="tag">'+c.label+'</span></div></div>'+
+    html+='<div class="contract'+(c.assigned.length?' assigned-any':'')+(unlocked?'':' locked')+'">'+
+      '<div class="c-top">'+clientLogo(c.client)+
+        '<div><div class="c-title">'+esc(c.title)+'</div><div class="c-client">'+esc(c.client)+' · '+esc(c.branche)+'</div></div>'+
+        '<div class="uc-badge" style="background:linear-gradient(135deg,'+uc.grad[0]+','+uc.grad[1]+')">'+uc.icon+'</div></div>'+
+      '<div class="tags"><span class="tag uc">'+uc.label+'</span><span class="tag">'+c.label+'</span>'+
+        '<span class="tag">🎯 '+SKILLS_C[uc.skills[0]]+' + '+SKILLS_C[uc.skills[1]]+'</span></div>'+
       '<div class="c-row">'+
-        '<span>💰 <b class="num">'+fmt(c.reward)+' ¢</b></span>'+
-        '<span>⭐ +'+c.rep+' Rep</span>'+
-        '<span>🎯 Anforderung: '+STATS[CATS[c.cat].primary]+' / '+STATS[CATS[c.cat].secondary]+'</span>'+
+        '<span>💰 <b class="num">'+fmt(c.reward)+' €</b></span>'+
+        '<span>⭐ +'+c.rep+' Ruf</span>'+
+        '<span>Technik: <span class="chance '+chColor+'">'+(c.assigned.length?chance+' %':'–')+'</span></span>'+
+        '<span>Akzeptanz: <span class="chance '+adColor+'">'+(c.assigned.length?adopt+' %':'–')+'</span></span>'+
       '</div>'+
-      '<div class="c-row"><span>Erfolgschance: <span class="chance '+chColor+'">'+(c.assigned.length?chance+' %':'–')+'</span></span></div>'+
-      '<div class="chips">'+chips+'</div>'+
+      (unlocked
+        ?'<div class="addon"><button class="'+(c.schulung?'on':'')+'" onclick="toggleSchulung('+c.id+')" '+(!c.schulung&&s.credits<150?'disabled':'')+'>🎓 Schulung '+(c.schulung?'✓ gebucht':'+ buchen (150 €)')+'</button></div>'+
+         '<div class="chips">'+chips+'</div>'
+        :'<div class="lock-hint">🔒 Benötigt Baustein „'+TOOLS[uc.tool].name+'“'+
+          '<button onclick="buyTool(\''+uc.tool+'\')" '+(s.credits<TOOLS[uc.tool].cost?'disabled':'')+'>Freischalten – '+fmt(TOOLS[uc.tool].cost)+' €</button></div>')+
     '</div>';
   }
   html+='</div>';
@@ -954,60 +1101,51 @@ function renderAuftraege(){
 
 function condColor(v){ return v>=60?'var(--good)':v>=30?'var(--warn)':'var(--bad)'; }
 
+function consultantCard(a,inTeam){
+  const s=state, r=roleOf(a), t=traitOf(a);
+  let statHtml='';
+  for(const k of Object.keys(SKILLS_C)){
+    statHtml+='<div class="statrow"><span class="sl">'+SKILLS_C[k]+'</span><div class="statbar"><div style="width:'+a.stats[k]+'%"></div></div><span class="sv">'+a.stats[k]+'</span></div>';
+  }
+  const inTraining=inTeam&&s.training&&s.training.agentId===a.id;
+  const working=inTeam&&s.contracts.some(c=>c.assigned.includes(a.id));
+  let actions;
+  if(inTeam){
+    actions='<span class="muted" style="font-size:.72rem;font-weight:700">Gehalt <b class="num">'+fmt(a.salary)+'</b> €/Wo</span>'+
+      '<button class="btn-sm'+(inTraining?' training-on':'')+'" onclick="setTraining('+a.id+')" '+(a.out>0||working||(!inTraining&&s.training)?'disabled':'')+'>'+(inTraining?'Weiterbildung ✓':'Weiterbilden')+'</button>'+
+      '<button class="btn-sm danger" onclick="fireConsultant('+a.id+')" '+(s.team.length<=1?'disabled':'')+'>Trennen</button>';
+  } else {
+    actions='<span class="muted" style="font-size:.72rem;font-weight:700">Gehalt <b class="num">'+fmt(a.salary)+'</b> €/Wo</span>'+
+      '<button class="btn-buy" onclick="hireConsultant('+a.id+')" '+(s.credits<a.price?'disabled':'')+'>Einstellen – '+fmt(a.price)+' €</button>';
+  }
+  return '<div class="agent'+(a.out>0?' out':'')+'">'+
+    '<div class="a-top"><div class="avatar">'+avatarSVG(a.seed,60)+'</div>'+
+      '<div><div class="a-name">'+esc(a.name)+'</div><div class="a-role">'+r.name+
+      (a.out>0?' · <span class="bad">🤒 '+a.out+' Wo. raus</span>':working?' · <span class="cy">im Projekt</span>':inTraining?' · <span class="vio">in Weiterbildung</span>':'')+
+      '</div><div class="a-trait">'+t.name+' – '+t.desc+'</div></div>'+
+      '<div class="lvl-chip">Lv '+a.level+'</div></div>'+
+    statHtml+
+    '<div class="xpbar"><div style="width:'+Math.round(100*a.xp/xpNeed(a.level))+'%"></div></div>'+
+    '<div class="meters">'+
+      '<div class="meter"><div class="lbl"><span>Energie</span><span class="num">'+a.cond+'</span></div><div class="mbar"><div style="width:'+a.cond+'%;background:'+condColor(a.cond)+'"></div></div></div>'+
+      '<div class="meter"><div class="lbl"><span>Stimmung</span><span class="num">'+a.morale+'</span></div><div class="mbar"><div style="width:'+a.morale+'%;background:'+condColor(a.morale)+'"></div></div></div>'+
+    '</div>'+
+    '<div class="a-actions">'+actions+'</div>'+
+  '</div>';
+}
+
 function renderTeam(){
   const s=state;
-  const trainingIds=[s.training,s.training2].filter(Boolean).map(t=>t.agentId);
-  let html='<div class="slots-info">Trainings-Slots: <b class="acc2 num">'+trainingIds.length+'/'+trainingSlots(s)+'</b> · Training kostet 150 ¢ und den Arbeitseinsatz der Woche.</div><div class="grid grid-3">';
-  for(const a of s.agents){
-    const ar=agentArch(a), t=agentTrait(a);
-    let statHtml='';
-    for(const k of Object.keys(STATS)){
-      statHtml+='<div class="statrow"><span class="sl">'+STATS[k]+'</span><div class="statbar"><div style="width:'+a.stats[k]+'%"></div></div><span class="sv">'+a.stats[k]+'</span></div>';
-    }
-    const inTraining=trainingIds.includes(a.id);
-    const working=s.contracts.some(c=>c.assigned.includes(a.id));
-    html+='<div class="agent'+(a.out>0?' out':'')+'">'+
-      '<div class="a-head"><span class="a-name">'+esc(a.name)+'</span><span class="num muted">Lv '+a.level+'</span></div>'+
-      '<div class="a-arch">'+ar.name+(a.out>0?' · <span class="bad">🔥 Ausfall: '+a.out+' Wo.</span>':working?' · <span class="acc">im Einsatz</span>':inTraining?' · <span class="acc2">im Training</span>':'')+'</div>'+
-      '<div class="a-trait">'+t.name+' – '+t.desc+'</div>'+
-      statHtml+
-      '<div class="xpbar"><div style="width:'+Math.round(100*a.xp/xpNeed(a.level))+'%"></div></div>'+
-      '<div class="meters">'+
-        '<div class="meter"><div class="lbl"><span>Zustand</span><span class="num">'+a.cond+'</span></div><div class="mbar"><div style="width:'+a.cond+'%;background:'+condColor(a.cond)+'"></div></div></div>'+
-        '<div class="meter"><div class="lbl"><span>Moral</span><span class="num">'+a.morale+'</span></div><div class="mbar"><div style="width:'+a.morale+'%;background:'+condColor(a.morale)+'"></div></div></div>'+
-      '</div>'+
-      '<div class="a-actions">'+
-        '<span class="muted" style="font-size:.75rem">Gehalt <b class="num">'+fmt(a.salary)+'</b> ¢/Wo · Wert <b class="num">'+fmt(a.value)+'</b> ¢</span>'+
-        '<button class="btn-sm'+(inTraining?' training-on':'')+'" onclick="setTraining('+a.id+')" '+(a.out>0||working||(!inTraining&&trainingIds.length>=trainingSlots(s))?'disabled':'')+'>'+(inTraining?'Training ✓':'Trainieren')+'</button>'+
-        '<button class="btn-sm danger" onclick="sellAgent('+a.id+')" '+(s.agents.length<=1?'disabled':'')+'>Verkaufen</button>'+
-      '</div>'+
-    '</div>';
-  }
+  let html='<div class="slots-info">Weiterbildungs-Slot: <b class="vio num">'+(s.training?1:0)+'/1</b> · Weiterbildung kostet 150 € und den Projekteinsatz der Woche.</div><div class="grid grid-3">';
+  for(const a of s.team) html+=consultantCard(a,true);
   html+='</div>';
   $('tab-team').innerHTML=html;
 }
-
 function renderMarkt(){
   const s=state;
-  let html='<div class="slots-info">Scouting-Stufe <b class="acc2">'+(s.skills.scouting||0)+'</b> · Der Markt wird jede Woche neu bestückt.</div><div class="grid grid-3">';
-  if(s.market.length===0) html+='<p class="muted">Diese Woche keine Angebote.</p>';
-  for(const a of s.market){
-    const ar=agentArch(a), t=agentTrait(a);
-    let statHtml='';
-    for(const k of Object.keys(STATS)){
-      statHtml+='<div class="statrow"><span class="sl">'+STATS[k]+'</span><div class="statbar"><div style="width:'+a.stats[k]+'%"></div></div><span class="sv">'+a.stats[k]+'</span></div>';
-    }
-    html+='<div class="agent">'+
-      '<div class="a-head"><span class="a-name">'+esc(a.name)+'</span><span class="num muted">Lv '+a.level+'</span></div>'+
-      '<div class="a-arch">'+ar.name+'</div>'+
-      '<div class="a-trait">'+t.name+' – '+t.desc+'</div>'+
-      statHtml+
-      '<div class="a-actions">'+
-        '<span class="muted" style="font-size:.75rem">Gehalt <b class="num">'+fmt(a.salary)+'</b> ¢/Wo</span>'+
-        '<button class="btn-sm" onclick="buyAgent('+a.id+')" '+(s.credits<a.price?'disabled':'')+'>Kaufen – <b class="num">'+fmt(a.price)+' ¢</b></button>'+
-      '</div>'+
-    '</div>';
-  }
+  let html='<div class="slots-info">Recruiting-Stufe <b class="vio">'+(s.skills.recruiting||0)+'</b> · Neue Bewerbungen jede Woche.</div><div class="grid grid-3">';
+  if(s.market.length===0) html+='<p class="muted">Diese Woche keine Bewerbungen.</p>';
+  for(const a of s.market) html+=consultantCard(a,false);
   html+='</div>';
   $('tab-markt').innerHTML=html;
 }
@@ -1018,24 +1156,25 @@ function renderLiga(){
   const total=table.reduce((n,r)=>n+r.rev,0)||1;
   let rows='';
   table.forEach((r,i)=>{
-    rows+='<tr class="'+(r.me?'me':'')+'"><td class="num">'+(i+1)+'</td><td>'+esc(r.name)+(r.me?' ★':'')+'</td><td class="num">'+fmt(r.rev)+'</td><td class="num">'+Math.round(100*r.rev/total)+' %</td></tr>';
+    const medal=i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1)+'.';
+    rows+='<tr class="'+(r.me?'me':'')+'"><td><span class="rank-medal">'+medal+'</span></td><td>'+esc(r.name)+(r.me?' ★':'')+'</td><td class="num">'+fmt(r.rev)+'</td><td class="num">'+Math.round(100*r.rev/total)+' %</td></tr>';
   });
   let ladder='';
   SEGMENTS.slice().reverse().forEach((L,i)=>{
     const tier=SEGMENTS.length-1-i;
-    const status=tier===s.tier?'DEIN SEGMENT':tier<s.tier?'erschlossen':'ab Rep '+L.repGate;
-    ladder+='<div class="kpi"><span>'+(tier===s.tier?'▶ ':'')+L.name+'</span><span class="v '+(tier===s.tier?'acc':tier<s.tier?'good':'muted')+'">'+status+'</span></div>';
+    const status=tier===s.tier?'DEIN SEGMENT':tier<s.tier?'erschlossen':'ab Ruf '+L.repGate;
+    ladder+='<div class="kpi"><span>'+(tier===s.tier?'▶ ':'')+L.name+'</span><span class="v '+(tier===s.tier?'cy':tier<s.tier?'good':'muted')+'">'+status+'</span></div>';
   });
   let troph='';
   if(s.trophies.length) troph='<div class="card" style="margin-top:16px"><h3>Meilensteine</h3>'+s.trophies.map(t=>'<div class="kpi"><span>'+esc(t)+'</span></div>').join('')+'</div>';
   $('tab-liga').innerHTML=
   '<div class="grid grid-2">'+
-    '<div class="card"><h3>Markt-Ranking · Segment '+SEGMENTS[s.tier].name+' · Quartal '+(Math.floor((s.week-1)/QUARTER_LEN)+1)+'</h3>'+
-      '<table><thead><tr><th class="num">#</th><th>Agentur</th><th class="num">Umsatz (¢)</th><th class="num">Marktanteil</th></tr></thead><tbody>'+rows+'</tbody></table>'+
-      '<p class="muted" style="font-size:.75rem;margin-top:10px">Umsätze des laufenden Quartals. Nicht angenommene Aufträge landen bei der Konkurrenz.</p>'+
+    '<div class="card"><h3>Markt-Ranking · '+SEGMENTS[s.tier].name+' · Quartal '+(Math.floor((s.week-1)/QUARTER_LEN)+1)+'</h3>'+
+      '<table><thead><tr><th></th><th>Beratung</th><th class="num">Umsatz (€)</th><th class="num">Anteil</th></tr></thead><tbody>'+rows+'</tbody></table>'+
+      '<p class="muted" style="font-size:.74rem;margin-top:10px;font-weight:700">Umsätze im laufenden Quartal. Liegengelassene Anfragen landen bei der Konkurrenz.</p>'+
     '</div>'+
     '<div><div class="card"><h3>Kundensegmente</h3>'+ladder+
-      '<p class="muted" style="font-size:.75rem;margin-top:10px">Aufstieg über Reputation – Referenzen öffnen größere Kunden. Es gibt keinen Zwangsabstieg, nur Marktdruck.</p>'+
+      '<p class="muted" style="font-size:.74rem;margin-top:10px;font-weight:700">Aufstieg über Ruf – Referenzen öffnen größere Kunden. Kein Zwangsabstieg, nur Marktdruck.</p>'+
     '</div>'+troph+'</div>'+
   '</div>';
 }
@@ -1061,8 +1200,8 @@ function resetGame(skipConfirm){
 
 /* ---------------- Init ---------------- */
 function foundCompany(){
-  const company=$('inp-company').value.trim()||'';
-  const manager=$('inp-manager').value.trim()||'';
+  const company=$('inp-company').value.trim();
+  const manager=$('inp-manager').value.trim();
   if(!company||!manager){
     $('inp-company').style.borderColor=company?'var(--line)':'var(--bad)';
     $('inp-manager').style.borderColor=manager?'var(--line)':'var(--bad)';
